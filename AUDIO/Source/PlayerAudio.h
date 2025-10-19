@@ -10,6 +10,10 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
 
+    juce::String titleText = "No Track Loaded";
+    juce::String nameText = "Artist: Unknown";
+    juce::String durationText = "-1";
+
 public:
     PlayerAudio();
     ~PlayerAudio();
@@ -23,4 +27,9 @@ public:
     void reset();
     void setGain(float val);
     void startNew(juce::File file);
+    void setPosition(double pos);
+    double getLength();
+    juce::String getName();
+    juce::String getTitle();
+    juce::String getDuration();
 };
