@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <JuceHeader.h>
 #include <vector>
@@ -23,5 +23,4 @@ public:
     void reset();
     void setGain(float val);
     void startNew(juce::File file);
-    void move(double val);
 };

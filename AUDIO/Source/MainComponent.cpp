@@ -11,6 +11,8 @@ MainComponent::MainComponent()
 
 MainComponent::~MainComponent()
 {
+    delete audio;
+    delete GUI;
     shutdownAudio();
 }
 

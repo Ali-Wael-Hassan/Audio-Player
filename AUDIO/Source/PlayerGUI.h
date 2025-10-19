@@ -10,19 +10,13 @@ private:
     PlayerAudio* control;
 
     // GUI Controls
-    std::vector<juce::TextButton*> buttons = {&loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton};
+    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton };
     juce::TextButton loadButton{ "Load Files" };
     juce::TextButton restartButton{ "Restart" };
     juce::TextButton stopButton{ "Stop" };
-    juce::TextButton playButton{ "Play" };
-    juce::TextButton muteButton{ "Mute" };
-    juce::TextButton go_to_startButton{ "Move left" };
-    juce::TextButton go_to_endButton{ "Move right" };
 
     // Volume Slider
     juce::Slider volumeSlider;
-    float lastVal = 0.5f;
-    bool muted = false;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 
@@ -36,7 +30,6 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
-    void sliderDragEnded(juce::Slider* slider) override;
 
     juce::TextButton& getLoad();
     juce::TextButton& getRestart();

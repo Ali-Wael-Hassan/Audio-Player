@@ -57,8 +57,3 @@ void PlayerAudio::startNew(juce::File file) {
 		transportSource.start();
 	}
 }
-
-void PlayerAudio::move(double val) {
-	double curPos = transportSource.getCurrentPosition();
-	transportSource.setPosition(std::max(0.0, std::min(transportSource.getLengthInSeconds(), curPos + val)));
-}
