@@ -6,6 +6,8 @@
 
 class PlayerAudio : public juce::AudioAppComponent {
 private:
+    std::unique_ptr<juce::ResamplingAudioSource> resamplingSource; 
+
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
@@ -29,7 +31,9 @@ public:
     void startNew(juce::File file);
     void setPosition(double pos);
     double getLength();
+    void setSpeed(double ratio);
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
+
 };

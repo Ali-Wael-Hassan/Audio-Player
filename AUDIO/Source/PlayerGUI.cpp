@@ -47,15 +47,39 @@ PlayerGUI::PlayerGUI(PlayerAudio& control) : control(&control)
 }
 
 void PlayerGUI::paint(juce::Graphics& g) {
-    g.fillAll(juce::Colours::darkgrey);
-}
 
+/***********************************************************/
+
+/******
+kareem ahmed 
+
+change background to GradientFill to mix two color 
+
+
+*******/
+	juce::Colour darkForest = juce::Colour::fromRGB(10, 25, 20); 
+	juce::Colour tealGlow = juce::Colour::fromRGB(30, 90, 80);   
+
+	juce::ColourGradient gradient( /* بتخلى الالوان mix بدرجه 45  */
+		darkForest, 0, 0,
+		tealGlow, (float)getWidth(), (float)getHeight(),
+		false
+	);
+
+	g.setGradientFill(gradient);
+	g.fillRect(getLocalBounds());
+
+
+/***********************************************************/
+
+
+}
 void PlayerGUI::resized() {
     auto bounds = getLocalBounds();
 
     auto buttonRow = bounds.removeFromTop(40).reduced(5);
 
-    auto buttonWidth = buttonRow.getWidth() / 7;
+    auto buttonWidth = buttonRow.getWidth() / 8;
 
     loadButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     restartButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
@@ -64,6 +88,8 @@ void PlayerGUI::resized() {
     muteButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     go_to_startButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     go_to_endButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+	speedButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+
 
     auto volumeSliderArea = bounds.removeFromTop(50).reduced(5);
     volumeSlider.setBounds(volumeSliderArea.reduced(5));
@@ -119,7 +145,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 muted = false;
                 volumeSlider.setValue(lastVal);
                 control->setGain((double)lastVal);
-                muteButton.setButtonText("Mute");
+                muteButton.setButtonText("Mute");// next update you will add icon next to title 
             }
             else
             {
@@ -129,7 +155,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 muted = true;
                 volumeSlider.setValue(0.0);
                 control->setGain(0.0);
-                muteButton.setButtonText("Unmute");
+                muteButton.setButtonText("Unmute");// next update you will add icon next to title 
             }
         }
     }
@@ -144,14 +170,46 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
             control->setPosition(control->getLength());
         }
     }
+	/*next update*/
+	else if (button == &speedButton)
+	{
+		static int state = 0;
+		state = (state + 1) % 4; //  0 → 1 → 2 → 3 → 0 
+
+		double newSpeed = 1.0;
+		if (state == 0) newSpeed = 1.0;
+		else if (state == 1) newSpeed = 1.25;
+		else if (state == 2) newSpeed = 1.5;
+		else if (state == 3) newSpeed = 2.0;
+
+		control->setSpeed(newSpeed);
+		juce::String label = "Speed: " + juce::String(newSpeed, 2) + "X";
+		speedButton.setButtonText(label);
+	}
+	/**************************************************************/
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
     if (control == nullptr) return;
 
     if (slider == &volumeSlider)
-        control->setGain((float)slider->getValue());
+        control->setGain((double)slider->getValue());
 }
+/*********************kareem*****************************/
+
+void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
+	if (control == nullptr) return;
+
+	if (slider == &volumeSlider) {
+		if ((double)slider->getValue() < 1e-8) {
+			muted = true;
+			return;
+		}
+
+		lastVal = (double)slider->getValue();
+	}
+}
+/*************************************************/
 
 juce::TextButton& PlayerGUI::getLoad()
 {
