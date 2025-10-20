@@ -10,12 +10,18 @@ class PlayerGUI : public juce::Component,
 private:
     PlayerAudio* control = nullptr;
 
+<<<<<<< HEAD
     // === Buttons ===
+=======
+    // GUI Controls
+    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton };
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     juce::TextButton loadButton{ "Load Files" };
     juce::TextButton restartButton{ "Restart" };
     juce::TextButton stopButton{ "Stop" };
     juce::TextButton playButton{ "Play" };
     juce::TextButton muteButton{ "Mute" };
+<<<<<<< HEAD
     juce::TextButton loopButton{ "Loop" };
     juce::TextButton go_to_startButton{ "<< 10s" };
     juce::TextButton go_to_endButton{ "10s >>" };
@@ -33,10 +39,26 @@ private:
 
     // === States ===
     float lastVal = 0.5f;
+=======
+    juce::TextButton go_to_startButton{ "Move to Start" };
+    juce::TextButton go_to_endButton{ "Move to End" };
+
+    // Volume Slider
+    juce::Slider volumeSlider;
+    double lastVal = 0.5;
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     bool muted = false;
     bool isLooping = false;
 
+<<<<<<< HEAD
     // === File chooser ===
+=======
+    // Author Name and Title
+    juce::Label name;
+    juce::Label title;
+    juce::Label duration;
+
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     std::unique_ptr<juce::FileChooser> fileChooser;
 
  
@@ -52,7 +74,6 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
-    void sliderDragEnded(juce::Slider* slider) override;
 
     // === Accessors ===
     juce::TextButton& getLoad();

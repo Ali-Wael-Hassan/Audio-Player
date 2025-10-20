@@ -9,10 +9,31 @@ void PlayerGUI::initializeControls()
         btn->addListener(this);
     }
 
+<<<<<<< HEAD
     // Volume slider setup
     //volumeSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+=======
+    name.setText("Artist: Unknown", juce::dontSendNotification);
+    name.setFont(juce::Font(16.0f, juce::Font::bold));
+    name.setJustificationType(juce::Justification::centredLeft);
+    name.setColour(juce::Label::textColourId, juce::Colours::white);
+    addAndMakeVisible(name);
+
+    title.setText("No Track Loaded", juce::dontSendNotification);
+    title.setFont(juce::Font(14.0f, juce::Font::bold));
+    title.setJustificationType(juce::Justification::centredLeft);
+    title.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
+    addAndMakeVisible(title);
+
+    duration.setText("-1", juce::dontSendNotification);
+    duration.setFont(juce::Font(14.0f, juce::Font::bold));
+    duration.setJustificationType(juce::Justification::centredLeft);
+    duration.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
+    addAndMakeVisible(duration);
+
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     volumeSlider.setRange(0.0, 1.0, 0.01);
-    volumeSlider.setValue(0.5f);
+    volumeSlider.setValue(0.5);
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
 
@@ -37,7 +58,11 @@ void PlayerGUI::initializeControls()
     hoverTimeLabel.setVisible(false);
 
     setSize(500, 250);
+<<<<<<< HEAD
     startTimer(100);
+=======
+
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
 }
 
 // Constructors
@@ -64,11 +89,24 @@ void PlayerGUI::resized() {
     auto posSliderArea = bounds.removeFromTop(40);
     positionSlider.setBounds(posSliderArea.reduced(5));
 
+<<<<<<< HEAD
     auto timeLabelArea = bounds.removeFromTop(25);
     timeLabel.setBounds(timeLabelArea);
 
     auto volumeSliderArea = bounds.removeFromTop(40);
+=======
+    auto volumeSliderArea = bounds.removeFromTop(50).reduced(5);
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     volumeSlider.setBounds(volumeSliderArea.reduced(5));
+
+    auto nameLabelArea = bounds.removeFromTop(20).reduced(0, 5);
+    name.setBounds(nameLabelArea);
+
+    auto titleLabelArea = bounds.removeFromTop(20).reduced(0, 5);
+    title.setBounds(titleLabelArea);
+
+    auto durationArea = bounds.removeFromTop(20).reduced(0, 5);
+    duration.setBounds(durationArea);
 }
 
 // Button clicks
@@ -83,8 +121,14 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 auto file = fc.getResult();
                 if (file.existsAsFile()) {
                     control->startNew(file);
+<<<<<<< HEAD
                     double total = control->getLengthInSeconds();
                     positionSlider.setRange(0.0, total, 0.01);
+=======
+                    name.setText(control->getName(), juce::dontSendNotification);
+                    title.setText(control->getTitle(), juce::dontSendNotification);
+                    duration.setText(control->getDuration(), juce::dontSendNotification);
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
                 }
             });
     }
@@ -92,7 +136,9 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         if (control->audioExist()) control->restart();
     }
     else if (button == &stopButton) {
-        control->stop();
+        if (control->audioExist()) {
+            control->stop();
+        }
     }
     else if (button == &playButton) {
         if (control->audioExist()) control->start();
@@ -102,30 +148,41 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
             if (muted) {
                 muted = false;
                 volumeSlider.setValue(lastVal);
-                control->setGain((float)lastVal);
+                control->setGain((double)lastVal);
                 muteButton.setButtonText("Mute");
             }
             else {
                 if (volumeSlider.getValue() > 0.001) lastVal = volumeSlider.getValue();
                 muted = true;
-                volumeSlider.setValue(0.0f);
-                control->setGain(0.0f);
+                volumeSlider.setValue(0.0);
+                control->setGain(0.0);
                 muteButton.setButtonText("Unmute");
             }
         }
     }
     else if (button == &loopButton) {
         if (control->audioExist()) {
+<<<<<<< HEAD
             isLooping = !isLooping;
             control->setLooping(isLooping);
             loopButton.setButtonText(isLooping ? "Unloop" : "Loop");
+=======
+            control->stop();
+            control->setPosition(0.0);
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
         }
     }
     else if (button == &go_to_startButton) {
         if (control->audioExist()) control->move(-10);
     }
     else if (button == &go_to_endButton) {
+<<<<<<< HEAD
         if (control->audioExist()) control->move(10);
+=======
+        if (control->audioExist()) {
+            control->setPosition(control->getLength());
+        }
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     }
 }
 
@@ -155,6 +212,7 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
     }
 }
 
+<<<<<<< HEAD
 void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
     if (control == nullptr) return;
 
@@ -189,6 +247,10 @@ void PlayerGUI::timerCallback() {
 
 // Getters
 juce::TextButton& PlayerGUI::getLoad() { 
+=======
+juce::TextButton& PlayerGUI::getLoad()
+{
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     return loadButton;
 }
 

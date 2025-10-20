@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <JuceHeader.h>
 #include <vector>
@@ -10,9 +10,15 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
 
+<<<<<<< HEAD
     bool isMuted = false;
     float lastGain = 1.0f;
     bool isLooping = false;
+=======
+    juce::String titleText = "No Track Loaded";
+    juce::String nameText = "Artist: Unknown";
+    juce::String durationText = "-1";
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
 
 public:
     PlayerAudio();
@@ -30,6 +36,7 @@ public:
     void restart();
     void reset();
     void startNew(juce::File file);
+<<<<<<< HEAD
     void move(double val);
     void setGain(float val);
 
@@ -46,3 +53,11 @@ public:
     // Mute
     void mute(bool shouldMute);
 };
+=======
+    void setPosition(double pos);
+    double getLength();
+    juce::String getName();
+    juce::String getTitle();
+    juce::String getDuration();
+};
+>>>>>>> 3931288ef8275e7716290f244e039e4f53808192
