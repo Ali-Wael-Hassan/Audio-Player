@@ -1,18 +1,15 @@
 ﻿#include "PlayerGUI.h"
 
+
 void PlayerGUI::initializeControls()
 {
-    // Add all buttons and set listeners
+    // Button set up
     for (auto* btn : buttons)
     {
         addAndMakeVisible(btn);
         btn->addListener(this);
     }
-
-<<<<<<< HEAD
-    // Volume slider setup
-    //volumeSlider.setSliderStyle(juce::Slider::LinearHorizontal);
-=======
+    // Label set up
     name.setText("Artist: Unknown", juce::dontSendNotification);
     name.setFont(juce::Font(16.0f, juce::Font::bold));
     name.setJustificationType(juce::Justification::centredLeft);
@@ -30,73 +27,72 @@ void PlayerGUI::initializeControls()
     duration.setJustificationType(juce::Justification::centredLeft);
     duration.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
     addAndMakeVisible(duration);
-
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
+    // Slider set up
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
 
-    // Position slider setup
-    positionSlider.setSliderStyle(juce::Slider::LinearHorizontal);
-    positionSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0); // Removed text box under the slider
-    positionSlider.setPopupDisplayEnabled(false, false, nullptr); // Disable default popup
-    positionSlider.addListener(this);
-    addAndMakeVisible(positionSlider);
-
-    // Time label 
-    addAndMakeVisible(timeLabel);
-    timeLabel.setJustificationType(juce::Justification::centred);
-    timeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-
-    //  hover time label 
-    addAndMakeVisible(hoverTimeLabel);
-    hoverTimeLabel.setJustificationType(juce::Justification::centred);
-    hoverTimeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-    hoverTimeLabel.setColour(juce::Label::backgroundColourId, juce::Colours::black.withAlpha(0.7f));
-    hoverTimeLabel.setSize(50, 20);
-    hoverTimeLabel.setVisible(false);
-
     setSize(500, 250);
-<<<<<<< HEAD
-    startTimer(100);
-=======
 
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
 }
 
-// Constructors
-PlayerGUI::PlayerGUI() : control(nullptr) { initializeControls(); }
-PlayerGUI::PlayerGUI(PlayerAudio& control) : control(&control) { initializeControls(); }
+PlayerGUI::PlayerGUI() : control(nullptr)
+{
+    initializeControls();
+}
 
-// Painting 
+PlayerGUI::PlayerGUI(PlayerAudio& control) : control(&control)
+{
+    initializeControls();
+}
+
 void PlayerGUI::paint(juce::Graphics& g) {
-    juce::ColourGradient gradient(juce::Colours::darkslateblue, 0, 0,
-        juce::Colours::black, getWidth(), getHeight(), false);
-    g.setGradientFill(gradient);
-    g.fillAll();
-}
 
-// Layout
+    /***********************************************************/
+
+    /******
+    kareem ahmed
+
+    change background to GradientFill to mix two color
+
+
+    *******/
+    juce::Colour darkForest = juce::Colour::fromRGB(10, 25, 20);
+    juce::Colour tealGlow = juce::Colour::fromRGB(30, 90, 80);
+
+    juce::ColourGradient gradient( /* بتخلى الالوان mix بدرجه 45  */
+        darkForest, 0, 0,
+        tealGlow, (float)getWidth(), (float)getHeight(),
+        false
+    );
+
+    g.setGradientFill(gradient);
+    g.fillRect(getLocalBounds());
+
+
+    /***********************************************************/
+
+
+}
 void PlayerGUI::resized() {
-    auto bounds = getLocalBounds().reduced(10);
+    auto bounds = getLocalBounds();
+
     auto buttonRow = bounds.removeFromTop(40).reduced(5);
+
     auto buttonWidth = buttonRow.getWidth() / 8;
 
-    for (auto* btn : buttons)
-        btn->setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    loadButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    restartButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    stopButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    playButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    muteButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    go_to_startButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    go_to_endButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    speedButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
 
-    auto posSliderArea = bounds.removeFromTop(40);
-    positionSlider.setBounds(posSliderArea.reduced(5));
 
-<<<<<<< HEAD
-    auto timeLabelArea = bounds.removeFromTop(25);
-    timeLabel.setBounds(timeLabelArea);
-
-    auto volumeSliderArea = bounds.removeFromTop(40);
-=======
     auto volumeSliderArea = bounds.removeFromTop(50).reduced(5);
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     volumeSlider.setBounds(volumeSliderArea.reduced(5));
 
     auto nameLabelArea = bounds.removeFromTop(20).reduced(0, 5);
@@ -109,7 +105,6 @@ void PlayerGUI::resized() {
     duration.setBounds(durationArea);
 }
 
-// Button clicks
 void PlayerGUI::buttonClicked(juce::Button* button) {
     if (control == nullptr) return;
 
@@ -121,19 +116,16 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 auto file = fc.getResult();
                 if (file.existsAsFile()) {
                     control->startNew(file);
-<<<<<<< HEAD
-                    double total = control->getLengthInSeconds();
-                    positionSlider.setRange(0.0, total, 0.01);
-=======
                     name.setText(control->getName(), juce::dontSendNotification);
                     title.setText(control->getTitle(), juce::dontSendNotification);
                     duration.setText(control->getDuration(), juce::dontSendNotification);
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
                 }
             });
     }
     else if (button == &restartButton) {
-        if (control->audioExist()) control->restart();
+        if (control->audioExist()) {
+            control->restart();
+        }
     }
     else if (button == &stopButton) {
         if (control->audioExist()) {
@@ -141,127 +133,101 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         }
     }
     else if (button == &playButton) {
-        if (control->audioExist()) control->start();
-    }
-    else if (button == &muteButton) {
         if (control->audioExist()) {
-            if (muted) {
+            control->start();
+        }
+    }
+    else if (button == &muteButton)
+    {
+        if (control->audioExist())
+        {
+            if (muted)
+            {
                 muted = false;
                 volumeSlider.setValue(lastVal);
                 control->setGain((double)lastVal);
-                muteButton.setButtonText("Mute");
+                muteButton.setButtonText("Mute");// next update you will add icon next to title 
             }
-            else {
-                if (volumeSlider.getValue() > 0.001) lastVal = volumeSlider.getValue();
+            else
+            {
+                if (volumeSlider.getValue() > 0.001) {
+                    lastVal = volumeSlider.getValue();
+                }
                 muted = true;
                 volumeSlider.setValue(0.0);
                 control->setGain(0.0);
-                muteButton.setButtonText("Unmute");
+                muteButton.setButtonText("Unmute");// next update you will add icon next to title 
             }
         }
     }
-    else if (button == &loopButton) {
+    else if (button == &go_to_startButton) {
         if (control->audioExist()) {
-<<<<<<< HEAD
-            isLooping = !isLooping;
-            control->setLooping(isLooping);
-            loopButton.setButtonText(isLooping ? "Unloop" : "Loop");
-=======
             control->stop();
             control->setPosition(0.0);
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
         }
     }
-    else if (button == &go_to_startButton) {
-        if (control->audioExist()) control->move(-10);
-    }
     else if (button == &go_to_endButton) {
-<<<<<<< HEAD
-        if (control->audioExist()) control->move(10);
-=======
         if (control->audioExist()) {
             control->setPosition(control->getLength());
         }
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     }
+    /*next update*/
+    else if (button == &speedButton)
+    {
+        static int state = 0;
+        state = (state + 1) % 4; //  0 → 1 → 2 → 3 → 0 
+
+        double newSpeed = 1.0;
+        if (state == 0) newSpeed = 1.0;
+        else if (state == 1) newSpeed = 1.25;
+        else if (state == 2) newSpeed = 1.5;
+        else if (state == 3) newSpeed = 2.0;
+
+        control->setSpeed(newSpeed);
+        juce::String label = "Speed: " + juce::String(newSpeed, 2) + "X";
+        speedButton.setButtonText(label);
+    }
+    /**************************************************************/
 }
 
-// Slider logic
 void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
     if (control == nullptr) return;
 
     if (slider == &volumeSlider)
-        control->setGain((float)slider->getValue());
-
-    else if (slider == &positionSlider && control->audioExist()) {
-        // Show hover time above the slider when dragging
-        if (slider->isMouseButtonDown()) {
-            double hoverPos = slider->getValue();
-            int mins = (int)(hoverPos / 60);
-            int secs = (int)std::fmod(hoverPos, 60);
-            hoverTimeLabel.setText(juce::String::formatted("%02d:%02d", mins, secs), juce::dontSendNotification);
-
-            int x = positionSlider.getX() + (int)positionSlider.getPositionOfValue(hoverPos) - 25;
-            int y = positionSlider.getY() - 25;
-            hoverTimeLabel.setBounds(x, y, 50, 20);
-            hoverTimeLabel.setVisible(true);
-        }
-        else {
-            hoverTimeLabel.setVisible(false);
-        }
-    }
+        control->setGain((double)slider->getValue());
 }
+/*********************kareem*****************************/
 
-<<<<<<< HEAD
 void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
     if (control == nullptr) return;
 
-    if (slider == &positionSlider && control->audioExist()) {
-        control->setPosition(slider->getValue());
-        hoverTimeLabel.setVisible(false); // Hide hover label after drag
+    if (slider == &volumeSlider) {
+        if ((double)slider->getValue() < 1e-8) {
+            muted = true;
+            return;
+        }
+
+        lastVal = (double)slider->getValue();
     }
 }
+/*************************************************/
 
-// Timer update
-void PlayerGUI::timerCallback() {
-    if (control == nullptr || !control->audioExist()) return;
-
-    double pos = control->getCurrentPosition();
-    double total = control->getLengthInSeconds();
-
-    if (isLooping && pos >= total - 0.05 && !control->isPlaying())
-        control->restart();
-
-    if (!positionSlider.isMouseButtonDown())
-        positionSlider.setValue(pos, juce::dontSendNotification);
-
-    auto formatTime = [](double seconds) {
-        int mins = (int)(seconds / 60);
-        int secs = (int)std::fmod(seconds, 60);
-        return juce::String::formatted("%02d:%02d", mins, secs);
-        };
-
-    juce::String text = formatTime(pos) + " / " + formatTime(total);
-    timeLabel.setText(text, juce::dontSendNotification);
-}
-
-// Getters
-juce::TextButton& PlayerGUI::getLoad() { 
-=======
 juce::TextButton& PlayerGUI::getLoad()
 {
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
     return loadButton;
 }
 
-juce::TextButton& PlayerGUI::getRestart() {
+juce::TextButton& PlayerGUI::getRestart()
+{
     return restartButton;
 }
 
-juce::TextButton& PlayerGUI::getStop() { 
+juce::TextButton& PlayerGUI::getStop()
+{
     return stopButton;
 }
 
-juce::Slider& PlayerGUI::getVolume() {
+juce::Slider& PlayerGUI::getVolume()
+{
     return volumeSlider;
 }

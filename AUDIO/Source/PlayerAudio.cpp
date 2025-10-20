@@ -1,119 +1,63 @@
 #include "PlayerAudio.h"
 
+
 PlayerAudio::PlayerAudio() {
-    formatManager.registerBasicFormats();
+	formatManager.registerBasicFormats();
+
+	resamplingSource = std::make_unique<juce::ResamplingAudioSource>(&transportSource, false, 2);
 }
 
 PlayerAudio::~PlayerAudio() {
-    transportSource.setSource(nullptr);  /*to prevent memoryleak*/
+	transportSource.setSource(nullptr);
+	resamplingSource.reset();
 }
 
 void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
-    transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+	// transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+	resamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
-    transportSource.getNextAudioBlock(bufferToFill);
+	resamplingSource->getNextAudioBlock(bufferToFill);
 }
 
 void PlayerAudio::releaseResources() {
-    transportSource.releaseResources();
-    readerSource.reset();
+	// transportSource.releaseResources();
+	resamplingSource->releaseResources();
+	readerSource.reset();
 }
 
 bool PlayerAudio::audioExist() {
-    return readerSource.get() != nullptr;
+	return readerSource.get() != nullptr;
 }
 
 void PlayerAudio::start() {
-    transportSource.start();
+	transportSource.start();
 }
 
 void PlayerAudio::stop() {
-    transportSource.stop();
+	transportSource.stop();
 }
 
 void PlayerAudio::reset() {
-<<<<<<< HEAD
-    transportSource.stop();
-    transportSource.setSource(nullptr);
-    readerSource.reset();
-=======
 	transportSource.stop();
 	transportSource.setSource(nullptr);
 	titleText = "No Track Loaded";
 	nameText = "Artist: Unknown";
 	durationText = "-1";
 	readerSource.reset();
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
 }
 
 void PlayerAudio::restart() {
-    transportSource.setPosition(0.0);
-    transportSource.start();
+	transportSource.setPosition(0.0);
+	transportSource.start();
 }
 
 void PlayerAudio::setGain(float val) {
-    transportSource.setGain(val);
-    lastGain = val;
+	transportSource.setGain(val);
 }
 
 void PlayerAudio::startNew(juce::File file) {
-<<<<<<< HEAD
-    if (auto* reader = formatManager.createReaderFor(file)) {
-        reset();
-        readerSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
-        readerSource->setLooping(isLooping);
-        transportSource.setSource(readerSource.get(), 0, nullptr, reader->sampleRate);
-        transportSource.start();
-    }
-}
-
-void PlayerAudio::move(double val) {
-    if (readerSource != nullptr) {
-        double curPos = transportSource.getCurrentPosition();
-        double newPos = std::max(0.0, std::min(transportSource.getLengthInSeconds(), curPos + val));
-        transportSource.setPosition(newPos);
-    }
-}
-
-double PlayerAudio::getCurrentPosition() const {
-    return transportSource.getCurrentPosition();
-}
-
-double PlayerAudio::getLengthInSeconds() const {
-    return transportSource.getLengthInSeconds();
-}
-
-void PlayerAudio::setPosition(double newPositionInSeconds) {
-    if (readerSource != nullptr)
-        transportSource.setPosition(newPositionInSeconds);
-}
-
-bool PlayerAudio::isPlaying() const {
-    return transportSource.isPlaying();
-}
-
-void PlayerAudio::mute(bool shouldMute) {
-    if (shouldMute) {
-        transportSource.setGain(0.0f);
-        isMuted = true;
-    }
-    else {
-        transportSource.setGain(lastGain);
-        isMuted = false;
-    }
-}
-
-void PlayerAudio::setLooping(bool shouldLoop) {
-    isLooping = shouldLoop;
-    if (readerSource)
-        readerSource->setLooping(shouldLoop);
-}
-
-bool PlayerAudio::getLooping() const {
-    return isLooping;
-=======
 	if (auto* reader = formatManager.createReaderFor(file)) {
 		reset();
 
@@ -154,9 +98,9 @@ bool PlayerAudio::getLooping() const {
 		juce::String time = "";
 		if (hours != 0) time += juce::String(hours) + " : ";
 		if (minutes > 0) time += juce::String(minutes) + " : ";
-		else if(hours > 0) time += "00 : ";
+		else if (hours > 0) time += "00 : ";
 		if (seconds > 0) time += juce::String(seconds);
-		else if(minutes > 0 || hours > 0) time += "00 : ";
+		else if (minutes > 0 || hours > 0) time += "00 : ";
 
 		durationText = (time.isNotEmpty() ? time : "-1");
 		transportSource.start();
@@ -165,7 +109,15 @@ bool PlayerAudio::getLooping() const {
 
 void PlayerAudio::setPosition(double pos) {
 	transportSource.setPosition(pos);
->>>>>>> 3931288ef8275e7716290f244e039e4f53808192
+}
+
+void PlayerAudio::setSpeed(double ratio)
+{
+	if (resamplingSource)
+	{
+		resamplingSource->setResamplingRatio(ratio);
+		DBG("Speed changed to: " << ratio);
+	}
 }
 
 double PlayerAudio::getLength() {
