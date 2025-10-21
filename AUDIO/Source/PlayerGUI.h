@@ -10,7 +10,6 @@ private:
     PlayerAudio* control;
 
     // GUI Controls
-    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton };
     juce::TextButton loadButton{ "Load Files" };
     juce::TextButton restartButton{ "Restart" };
     juce::TextButton stopButton{ "Stop" };
@@ -19,6 +18,7 @@ private:
     juce::TextButton go_to_startButton{ "Move to Start" };
     juce::TextButton go_to_endButton{ "Move to End" };
     juce::TextButton speedButton{ "Speed: 1.0x" };
+    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton };
 
     // Volume Slider
     juce::Slider volumeSlider;
@@ -26,9 +26,13 @@ private:
     bool muted = false;
 
     // Author Name and Title
+    juce::Label author;
+    juce::Label songTitle;
+    juce::Label durationHeader;
     juce::Label name;
     juce::Label title;
     juce::Label duration;
+    std::vector<std::pair<juce::String, juce::Label*>> labels = { {"Author: ", &author}, {"Title: ", &songTitle}, {"Duration: ", &durationHeader}, {"Artist: Unknown", &name}, {"No Track Loaded", &title}, {"-1", &duration} };
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 
