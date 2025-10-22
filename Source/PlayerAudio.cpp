@@ -123,6 +123,25 @@ double PlayerAudio::getLength() {
 	return transportSource.getLengthInSeconds();
 }
 
+
+//=================the setlooping =============//
+void PlayerAudio::toggleLooping()
+{
+	loopActive = !loopActive;
+	transportSource.setLooping(loopActive);
+}
+
+bool PlayerAudio::isLoopingg() const
+{
+	return loopActive;
+}
+
+
+
+//====================================//
+
+
+
 juce::String PlayerAudio::getName() {
 	return nameText;
 }
