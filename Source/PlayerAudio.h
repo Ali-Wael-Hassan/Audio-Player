@@ -15,6 +15,8 @@ private:
     juce::String titleText = "No Track Loaded";
     juce::String nameText = "Unknown";
     juce::String durationText = "0:00";
+    //===========for the toggle=============//
+    bool loopActive = false;  // is rebeat active?
 
 public:
     PlayerAudio();
@@ -32,6 +34,12 @@ public:
     void setPosition(double pos);
     double getLength();
     void setSpeed(double ratio);
+
+    //=====================Toggle Loop=======================//
+    //=========Omar====================//
+    void toggleLooping();   // toggle looping on/off
+    bool isLooping() const;   
+
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
