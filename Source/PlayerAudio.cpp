@@ -22,7 +22,7 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 /*
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
 
-	//transportSource->getNextAudioBlock(bufferToFill); there's no need since the resampling does the job..
+	transportSource->getNextAudioBlock(bufferToFill); 
 
 	resamplingSource->getNextAudioBlock(bufferToFill);
 }
@@ -34,10 +34,14 @@ void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
 	resamplingSource->getNextAudioBlock(bufferToFill);
 
+
+	/* 
 	if (loopActive && transportSource.hasStreamFinished()) {
 		transportSource.setPosition(0.0);
 		transportSource.start();
 	}
+   */
+	//Commented it since the resampling does the job
 }
 
 
