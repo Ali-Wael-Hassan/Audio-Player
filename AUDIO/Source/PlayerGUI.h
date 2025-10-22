@@ -13,7 +13,7 @@ private:
     juce::TextButton loadButton{ "Load Files" };
     juce::TextButton restartButton{ "Restart" };
     juce::TextButton stopButton{ "Stop" };
-    juce::TextButton playButton{ "Play" };
+    juce::TextButton playButton{ "Pause ||" };
     juce::TextButton muteButton{ "Mute" };
     juce::TextButton go_to_startButton{ "Move to Start" };
     juce::TextButton go_to_endButton{ "Move to End" };
@@ -33,6 +33,7 @@ private:
     juce::Label title;
     juce::Label duration;
     std::vector<std::pair<juce::String, juce::Label*>> labels = { {"Author: ", &author}, {"Title: ", &songTitle}, {"Duration: ", &durationHeader}, {"Artist: Unknown", &name}, {"No Track Loaded", &title}, {"-1", &duration} };
+    bool stoped = true;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 

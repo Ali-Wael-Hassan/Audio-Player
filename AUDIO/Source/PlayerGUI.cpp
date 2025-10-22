@@ -113,6 +113,10 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                     name.setText(control->getName(), juce::dontSendNotification);
                     title.setText(control->getTitle(), juce::dontSendNotification);
                     duration.setText(control->getDuration(), juce::dontSendNotification);
+                    if (control->audioExist()) {
+                        playButton.setButtonText("Pause ||");
+                        stoped = false;
+                    }
                 }
             });
     }
@@ -124,11 +128,22 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
     else if (button == &stopButton) {
         if (control->audioExist()) {
             control->stop();
+            control->setPosition(0.0);
+            stoped = true;
+            playButton.setButtonText("Play");
         }
     }
     else if (button == &playButton) {
-        if (control->audioExist()) {
+        if (!control->audioExist()) return;
+        if (stoped) {
+            stoped = false;
+            playButton.setButtonText("Pause ||");
             control->start();
+        }
+        else {
+            stoped = true;
+            playButton.setButtonText("Play");
+            control->stop();
         }
     }
     else if (button == &muteButton)
@@ -156,7 +171,6 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
     }
     else if (button == &go_to_startButton) {
         if (control->audioExist()) {
-            control->stop();
             control->setPosition(0.0);
         }
     }
