@@ -13,8 +13,8 @@ private:
     juce::AudioTransportSource transportSource;
 
     juce::String titleText = "No Track Loaded";
-    juce::String nameText = "Artist: Unknown";
-    juce::String durationText = "-1";
+    juce::String nameText = "Unknown";
+    juce::String durationText = "0:00";
 
 public:
     PlayerAudio();

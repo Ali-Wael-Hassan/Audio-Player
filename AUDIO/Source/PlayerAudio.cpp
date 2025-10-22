@@ -18,6 +18,7 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 }
 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
+	//transportSource->getNextAudioBlock(bufferToFill);
 	resamplingSource->getNextAudioBlock(bufferToFill);
 }
 
@@ -43,7 +44,7 @@ void PlayerAudio::reset() {
 	transportSource.stop();
 	transportSource.setSource(nullptr);
 	titleText = "No Track Loaded";
-	nameText = "Artist: Unknown";
+	nameText = "Unknown";
 	durationText = "-1";
 	readerSource.reset();
 }
@@ -61,7 +62,7 @@ void PlayerAudio::startNew(juce::File file) {
 	if (auto* reader = formatManager.createReaderFor(file)) {
 		reset();
 
-		juce::String artistKeys[] = { "IART" };
+		juce::String artistKeys[] = { "TPE1", "ARTIST", "IART" };
 		juce::String artist;
 
 		for (auto& key : artistKeys)
@@ -73,7 +74,7 @@ void PlayerAudio::startNew(juce::File file) {
 
 		nameText = (artist.isNotEmpty() ? artist : "Unknown Artist");
 
-		juce::String titleKeys[] = { "INAM" };
+		juce::String titleKeys[] = { "TIT2", "TITLE", "INAM" };
 		juce::String title;
 
 		for (auto& key : titleKeys)
@@ -96,13 +97,11 @@ void PlayerAudio::startNew(juce::File file) {
 		int seconds = duration;
 
 		juce::String time = "";
-		if (hours != 0) time += juce::String(hours) + " : ";
-		if (minutes > 0) time += juce::String(minutes) + " : ";
-		else if (hours > 0) time += "00 : ";
-		if (seconds > 0) time += juce::String(seconds);
-		else if (minutes > 0 || hours > 0) time += "00 : ";
+		if (hours > 0) time += juce::String::formatted("%d:", hours);
 
-		durationText = (time.isNotEmpty() ? time : "-1");
+		time += juce::String::formatted("%02d:%02d", minutes, seconds);
+
+		durationText = (time.isNotEmpty() ? time : "0:00");
 		transportSource.start();
 	}
 }

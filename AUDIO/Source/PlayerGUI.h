@@ -32,7 +32,7 @@ private:
     juce::Label name;
     juce::Label title;
     juce::Label duration;
-    std::vector<std::pair<juce::String, juce::Label*>> labels = { {"Author: ", &author}, {"Title: ", &songTitle}, {"Duration: ", &durationHeader}, {"Artist: Unknown", &name}, {"No Track Loaded", &title}, {"-1", &duration} };
+    std::vector<std::pair<juce::String, juce::Label*>> labels = { {"Author: ", &author}, {"Title: ", &songTitle}, {"Duration: ", &durationHeader}, {"Unknown", &name}, {"No Track Loaded", &title}, {"0:00", &duration} };
     bool stoped = true;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
