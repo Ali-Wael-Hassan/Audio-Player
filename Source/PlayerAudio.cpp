@@ -152,7 +152,7 @@ void PlayerAudio::toggleLooping()
 	transportSource.setLooping(loopActive);
 }
 
-bool PlayerAudio::isLoopingg() const
+bool PlayerAudio::isLooping() const
 {
 	return loopActive;
 }
