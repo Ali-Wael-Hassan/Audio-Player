@@ -15,7 +15,7 @@ private:
     juce::String titleText = "No Track Loaded";
     juce::String nameText = "Unknown";
     juce::String durationText = "0:00";
-
+    bool loopActive = false;
 public:
     PlayerAudio();
     ~PlayerAudio();
@@ -32,6 +32,8 @@ public:
     void setPosition(double pos);
     double getLength();
     void setSpeed(double ratio);
+    void toggleLooping();
+    bool isLooping() const;
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();

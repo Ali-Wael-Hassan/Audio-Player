@@ -20,6 +20,10 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
 	//transportSource->getNextAudioBlock(bufferToFill);
 	resamplingSource->getNextAudioBlock(bufferToFill);
+	if (loopActive && transportSource.hasStreamFinished()) {
+		transportSource.setPosition(0.0);
+		transportSource.start();
+	}
 }
 
 void PlayerAudio::releaseResources() {
@@ -125,6 +129,16 @@ double PlayerAudio::getLength() {
 
 juce::String PlayerAudio::getName() {
 	return nameText;
+}
+
+void PlayerAudio::toggleLooping()
+{
+	loopActive = !loopActive;
+}
+
+bool PlayerAudio::isLooping() const
+{
+	return loopActive;
 }
 
 juce::String PlayerAudio::getTitle() {
