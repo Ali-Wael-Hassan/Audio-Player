@@ -18,7 +18,8 @@ private:
     juce::TextButton go_to_startButton{ "Move to Start" };
     juce::TextButton go_to_endButton{ "Move to End" };
     juce::TextButton speedButton{ "Speed: 1.0x" };
-    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton };
+    juce::TextButton repeatButton{ "Repeat: OFF" };
+    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton, &repeatButton };
 
     // Volume Slider
     juce::Slider volumeSlider;

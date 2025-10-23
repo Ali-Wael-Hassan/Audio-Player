@@ -71,7 +71,7 @@ void PlayerGUI::resized() {
 
     auto buttonRow = bounds.removeFromTop(40).reduced(5);
 
-    auto buttonWidth = buttonRow.getWidth() / 8;
+    auto buttonWidth = buttonRow.getWidth() / buttons.size();
 
     loadButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     restartButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
@@ -81,6 +81,7 @@ void PlayerGUI::resized() {
     go_to_startButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     go_to_endButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     speedButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    repeatButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
 
 
     auto volumeSliderArea = bounds.removeFromTop(50).reduced(5);
@@ -179,6 +180,22 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
             control->setPosition(control->getLength());
         }
     }
+    else if (button == &repeatButton)
+    {
+
+        if (!control->audioExist()) {
+            return;
+        }
+        control->toggleLooping();
+        if (control->isLooping())
+        {
+            repeatButton.setButtonText("Repeat: ON");
+        }
+        else
+        {
+            repeatButton.setButtonText("Repeat: OFF");
+        }
+    }
     /*next update*/
     else if (button == &speedButton)
     {
@@ -196,6 +213,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         speedButton.setButtonText(label);
     }
     /**************************************************************/
+
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
