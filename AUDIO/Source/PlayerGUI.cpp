@@ -23,9 +23,9 @@ void PlayerGUI::initializeControls()
     volumeSlider.setValue(0.5);
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
+    control->setSignalListener(this);
 
     setSize(500, 250);
-
 }
 
 PlayerGUI::PlayerGUI() : control(nullptr)
@@ -39,16 +39,6 @@ PlayerGUI::PlayerGUI(PlayerAudio& control) : control(&control)
 }
 
 void PlayerGUI::paint(juce::Graphics& g) {
-
-    /***********************************************************/
-
-    /******
-    kareem ahmed
-
-    change background to GradientFill to mix two color
-
-
-    *******/
     juce::Colour darkForest = juce::Colour::fromRGB(10, 25, 20);
     juce::Colour tealGlow = juce::Colour::fromRGB(30, 90, 80);
 
@@ -60,11 +50,6 @@ void PlayerGUI::paint(juce::Graphics& g) {
 
     g.setGradientFill(gradient);
     g.fillRect(getLocalBounds());
-
-
-    /***********************************************************/
-
-
 }
 void PlayerGUI::resized() {
     auto bounds = getLocalBounds();
@@ -139,7 +124,8 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         if (stoped) {
             stoped = false;
             playButton.setButtonText("Pause ||");
-            control->start();
+            if (control->reachEnd()) control->restart();
+            else control->start();
         }
         else {
             stoped = true;
@@ -156,7 +142,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 muted = false;
                 volumeSlider.setValue(lastVal);
                 control->setGain((double)lastVal);
-                muteButton.setButtonText("Mute");// next update you will add icon next to title 
+                muteButton.setButtonText("Mute");
             }
             else
             {
@@ -166,7 +152,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 muted = true;
                 volumeSlider.setValue(0.0);
                 control->setGain(0.0);
-                muteButton.setButtonText("Unmute");// next update you will add icon next to title 
+                muteButton.setButtonText("Unmute");
             }
         }
     }
@@ -196,11 +182,10 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
             repeatButton.setButtonText("Repeat: OFF");
         }
     }
-    /*next update*/
     else if (button == &speedButton)
     {
         static int state = 0;
-        state = (state + 1) % 4; //  0 → 1 → 2 → 3 → 0 
+        state = (state + 1) % 4;
 
         double newSpeed = 1.0;
         if (state == 0) newSpeed = 1.0;
@@ -212,8 +197,6 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         juce::String label = "Speed: " + juce::String(newSpeed, 2) + "X";
         speedButton.setButtonText(label);
     }
-    /**************************************************************/
-
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
@@ -222,7 +205,6 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
     if (slider == &volumeSlider)
         control->setGain((double)slider->getValue());
 }
-/*********************kareem*****************************/
 
 void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
     if (control == nullptr) return;
@@ -236,21 +218,15 @@ void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
         lastVal = (double)slider->getValue();
     }
 }
-/*************************************************/
 
-juce::TextButton& PlayerGUI::getLoad()
-{
-    return loadButton;
+void PlayerGUI::playBackFinished() {
+    playButton.setButtonText("Play");
+    stoped = true;
 }
 
-juce::TextButton& PlayerGUI::getRestart()
-{
-    return restartButton;
-}
-
-juce::TextButton& PlayerGUI::getStop()
-{
-    return stopButton;
+juce::TextButton* PlayerGUI::getButton(std::string s) {
+    if (mp.find(s) == mp.end()) return nullptr;
+    return mp[s];
 }
 
 juce::Slider& PlayerGUI::getVolume()

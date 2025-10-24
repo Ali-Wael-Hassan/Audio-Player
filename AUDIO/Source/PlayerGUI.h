@@ -1,9 +1,10 @@
 #pragma once
 
 #include "PlayerAudio.h"
+#include <map>
 
 
-class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener
+class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public PlayerAudioSignal
 {
 private:
     // Audio
@@ -15,8 +16,8 @@ private:
     juce::TextButton stopButton{ "Stop" };
     juce::TextButton playButton{ "Pause ||" };
     juce::TextButton muteButton{ "Mute" };
-    juce::TextButton go_to_startButton{ "Move to Start" };
-    juce::TextButton go_to_endButton{ "Move to End" };
+    juce::TextButton go_to_startButton{ "|<" };
+    juce::TextButton go_to_endButton{ ">|" };
     juce::TextButton speedButton{ "Speed: 1.0x" };
     juce::TextButton repeatButton{ "Repeat: OFF" };
     std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton, &repeatButton };
@@ -25,6 +26,16 @@ private:
     juce::Slider volumeSlider;
     double lastVal = 0.5;
     bool muted = false;
+
+    std::map<std::string, juce::TextButton*> mp = { {"load", &loadButton},
+                                                    {"restart", &restartButton}, 
+                                                    {"stop", &stopButton},
+                                                    {"play", &playButton},
+                                                    {"mute", &muteButton},
+                                                    {"|<", &go_to_startButton},
+                                                    {">|", &go_to_endButton},
+                                                    {"speed", &speedButton},
+                                                    {"repeat", &repeatButton} };
 
     // Author Name and Title
     juce::Label author;
@@ -50,8 +61,8 @@ public:
     void sliderValueChanged(juce::Slider* slider) override;
     void sliderDragEnded(juce::Slider* slider) override;
 
-    juce::TextButton& getLoad();
-    juce::TextButton& getRestart();
-    juce::TextButton& getStop();
+    void playBackFinished();
+
+    juce::TextButton* getButton(std::string s);
     juce::Slider& getVolume();
 };

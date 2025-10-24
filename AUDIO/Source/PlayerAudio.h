@@ -3,9 +3,11 @@
 #include <JuceHeader.h>
 #include <vector>
 #include <algorithm>
+#include "PlayerAudioSignal.h"
 
 class PlayerAudio : public juce::AudioAppComponent {
 private:
+    PlayerAudioSignal* listen = nullptr;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
 
     juce::AudioFormatManager formatManager;
@@ -37,5 +39,6 @@ public:
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
-
+    void setSignalListener(PlayerAudioSignal* l);
+    bool reachEnd();
 };

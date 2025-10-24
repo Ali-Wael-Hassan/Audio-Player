@@ -24,6 +24,11 @@ void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
 		transportSource.setPosition(0.0);
 		transportSource.start();
 	}
+	else if (transportSource.hasStreamFinished()) {
+		if (listen) {
+			listen->playBackFinished();
+		}
+	}
 }
 
 void PlayerAudio::releaseResources() {
@@ -147,4 +152,12 @@ juce::String PlayerAudio::getTitle() {
 
 juce::String PlayerAudio::getDuration() {
 	return durationText;
+}
+
+void PlayerAudio::setSignalListener(PlayerAudioSignal* l) {
+	listen = l;
+}
+
+bool PlayerAudio::reachEnd() {
+	return transportSource.hasStreamFinished();
 }
