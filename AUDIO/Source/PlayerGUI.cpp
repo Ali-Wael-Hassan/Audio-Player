@@ -279,11 +279,24 @@ void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
 }
 void PlayerGUI::timerCallback()
 {
+    if (control == nullptr || isUserDraggingPosition)
+        return;
+
     if (control != nullptr && control->audioExist())
     {
         // later this will track playback position
         double pos = control->getAudioPosition();
         positionSlider.setValue(pos, juce::dontSendNotification);
+        ////handling time units convertions
+        //int totalMillis = static_cast<int>(pos * 1000.0); // convert to ms
+        //int minutes = totalMillis / 60000;
+        //int seconds = (totalMillis % 60000) / 1000;
+        //int millis = totalMillis % 1000;
+
+        //juce::String formattedTime = juce::String::formatted("%02d:%02d:%03d", minutes, seconds, millis);
+
+        //
+        //juce::Logger::outputDebugString("Position: " + formattedTime);
     }
 }
 /*************************************************/
