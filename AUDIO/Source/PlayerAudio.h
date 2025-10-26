@@ -35,6 +35,8 @@ public:
     double getLength();
     void setSpeed(double ratio);
 
+    double getAudioPosition();
+
     void toggleLooping();   // toggle looping on/off
     bool isLooping() const;   
 

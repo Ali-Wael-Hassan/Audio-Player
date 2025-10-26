@@ -232,7 +232,17 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider) {
     if (slider == &volumeSlider)
         control->setGain((double)slider->getValue());
 }
-/*********************kareem*****************************/
+
+
+void PlayerGUI::sliderDragStarted(juce::Slider* slider)
+{
+    if (slider == &positionSlider)
+    {
+        isUserDraggingPosition = true;
+    }
+}
+
+
 
 void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
     if (control == nullptr) return;
@@ -244,6 +254,26 @@ void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
         }
 
         lastVal = (double)slider->getValue();
+    }
+
+    //posision 
+    if (slider == &positionSlider)
+    {
+        if (control != nullptr && control->audioExist())
+        {
+            control->setPosition(slider->getValue());
+        }
+        isUserDraggingPosition = false;
+        return;
+    }
+}
+void PlayerGUI::timerCallback()
+{
+    if (control != nullptr && control->audioExist())
+    {
+        // later this will track playback position
+        double pos = control->getAudioPosition();
+        positionSlider.setValue(pos, juce::dontSendNotification);
     }
 }
 /*************************************************/

@@ -139,6 +139,11 @@ void PlayerAudio::setSpeed(double ratio)
 	}
 }
 
+double PlayerAudio::getAudioPosition()
+{
+	return transportSource.getCurrentPosition();
+}
+
 double PlayerAudio::getLength() {
 	return transportSource.getLengthInSeconds();
 }

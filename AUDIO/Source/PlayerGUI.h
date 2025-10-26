@@ -3,7 +3,7 @@
 #include "PlayerAudio.h"
 
 
-class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener
+class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public juce::Timer
 {
 private:
     // Audio
@@ -30,7 +30,8 @@ private:
     juce::Slider positionSlider;
     double startPostion = 0.0;
     bool isStopped = false;
-
+    bool isUserDraggingPosition = false;
+    
 
     // Author Name and Title
     juce::Label author;
@@ -54,7 +55,9 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
+    void sliderDragStarted(juce::Slider* slider) override;
     void sliderDragEnded(juce::Slider* slider) override;
+    void timerCallback() override;
 
     juce::TextButton& getLoad();
     juce::TextButton& getRestart();
