@@ -1,4 +1,4 @@
-﻿#include "PlayerGUI.h"
+#include "PlayerGUI.h"
 
 
 void PlayerGUI::initializeControls()
@@ -71,7 +71,7 @@ void PlayerGUI::resized() {
 
     auto buttonRow = bounds.removeFromTop(40).reduced(5);
 
-    auto buttonWidth = buttonRow.getWidth() / 8;
+    auto buttonWidth = buttonRow.getWidth() / buttons.size();
 
     loadButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     restartButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
@@ -81,6 +81,7 @@ void PlayerGUI::resized() {
     go_to_startButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     go_to_endButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
     speedButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
+    repeatButton.setBounds(buttonRow.removeFromLeft(buttonWidth).reduced(4));
 
 
     auto volumeSliderArea = bounds.removeFromTop(50).reduced(5);
@@ -169,6 +170,23 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
             }
         }
     }
+    else if (button == &repeatButton)
+    {
+        if (!control->audioExist()) {
+            return;
+        }
+        control->toggleLooping();
+        if (control->isLooping())
+        {
+            repeatButton.setButtonText("Repeat: ON");
+        }
+        else
+        {
+            repeatButton.setButtonText("Repeat: OFF");
+        }
+    }
+
+
     else if (button == &go_to_startButton) {
         if (control->audioExist()) {
             control->setPosition(0.0);

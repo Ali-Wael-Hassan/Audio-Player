@@ -1,0 +1,14 @@
+"" 
+# Visual Studio
+.vs/
+*.vsidx
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Build output
+Build/
+Builds/
+bin/
+obj/
