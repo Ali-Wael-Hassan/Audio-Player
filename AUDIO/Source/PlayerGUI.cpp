@@ -27,24 +27,28 @@ void PlayerGUI::initializeControls()
     setSize(500, 250);
 
     // Position Slider Setup
+    //positionSlider.setRange(0.0, control->getLength());
     positionSlider.addListener(this);
     addAndMakeVisible(positionSlider);
     positionSlider.setNumDecimalPlacesToDisplay(2);
 
     setSize(500, 250);
-
 }
 
+//***********************************//
 PlayerGUI::PlayerGUI() : control(nullptr)
 {
     initializeControls();
+    startTimerHz(30);
 }
 
 PlayerGUI::PlayerGUI(PlayerAudio& control) : control(&control)
 {
     initializeControls();
-}
+    startTimerHz(30);
 
+}
+//**************************************//
 void PlayerGUI::paint(juce::Graphics& g) {
 
     /***********************************************************/
@@ -119,15 +123,21 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
             juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
             [this](const juce::FileChooser& fc) {
                 auto file = fc.getResult();
-                if (file.existsAsFile()) {
+                if (file.existsAsFile()) 
+                {
                     control->startNew(file);
                     name.setText(control->getName(), juce::dontSendNotification);
                     title.setText(control->getTitle(), juce::dontSendNotification);
                     duration.setText(control->getDuration(), juce::dontSendNotification);
-                    if (control->audioExist()) {
-                        playButton.setButtonText("Pause ||");
-                        stoped = false;
-                    }
+
+                        if (control->audioExist()) 
+                        {
+                            playButton.setButtonText("Pause ||");
+                            stoped = false;
+                            //***********************//
+                            positionSlider.setRange(0.0, control->getLength(), 0.01);
+                            positionSlider.setValue(0.0);
+                        }
                 }
             });
     }
