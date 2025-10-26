@@ -28,8 +28,8 @@ private:
 
     //Position Slider 
     juce::Slider positionSlider;
-
-    bool Stopped = false;
+    double startPostion = 0.0;
+    bool isStopped = false;
 
 
     // Author Name and Title
@@ -60,4 +60,5 @@ public:
     juce::TextButton& getRestart();
     juce::TextButton& getStop();
     juce::Slider& getVolume();
+    juce::Slider& getPosition();
 };

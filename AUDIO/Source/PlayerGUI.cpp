@@ -26,6 +26,13 @@ void PlayerGUI::initializeControls()
 
     setSize(500, 250);
 
+    // Position Slider Setup
+    positionSlider.addListener(this);
+    addAndMakeVisible(positionSlider);
+    positionSlider.setNumDecimalPlacesToDisplay(2);
+
+    setSize(500, 250);
+
 }
 
 PlayerGUI::PlayerGUI() : control(nullptr)
@@ -86,6 +93,9 @@ void PlayerGUI::resized() {
 
     auto volumeSliderArea = bounds.removeFromTop(50).reduced(5);
     volumeSlider.setBounds(volumeSliderArea.reduced(5));
+
+    auto positionSliderArea = bounds.removeFromTop(50).reduced(5);
+    positionSlider.setBounds(positionSliderArea.reduced(5));
 
     auto nameLabelArea = bounds.removeFromTop(30).reduced(0, 5);
     author.setBounds(nameLabelArea.removeFromLeft(70).reduced(5));
@@ -256,4 +266,10 @@ juce::TextButton& PlayerGUI::getStop()
 juce::Slider& PlayerGUI::getVolume()
 {
     return volumeSlider;
+}
+
+juce::Slider& PlayerGUI::getPosition()
+{
+    return positionSlider;
+
 }
