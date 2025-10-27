@@ -1,7 +1,7 @@
 #include "PlayerAudio.h"
 
 
-PlayerAudio::PlayerAudio() {
+PlayerAudio::PlayerAudio() : playlist("x.txt") {
 	formatManager.registerBasicFormats();
 
 	resamplingSource = std::make_unique<juce::ResamplingAudioSource>(&transportSource, false, 2);
@@ -20,14 +20,9 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
 	//transportSource->getNextAudioBlock(bufferToFill);
 	resamplingSource->getNextAudioBlock(bufferToFill);
-	if (loopActive && transportSource.hasStreamFinished()) {
+	if (transportSource.hasStreamFinished()) {
 		transportSource.setPosition(0.0);
 		transportSource.start();
-	}
-	else if (transportSource.hasStreamFinished()) {
-		if (listen) {
-			listen->playBackFinished();
-		}
 	}
 }
 
@@ -152,6 +147,10 @@ juce::String PlayerAudio::getTitle() {
 
 juce::String PlayerAudio::getDuration() {
 	return durationText;
+}
+
+PlaylistManager& PlayerAudio::getPlaylistManager() {
+	return playlist;
 }
 
 void PlayerAudio::setSignalListener(PlayerAudioSignal* l) {
