@@ -3,7 +3,7 @@
 PlaylistManager::PlaylistManager(const string& path) {
     load(path);
     if (playlist.find(ROOT) == playlist.end()) {
-        playlist[ROOT] = { "", "" };
+        playlist[ROOT] = { "END", "END" };
     }
 }
 
@@ -31,8 +31,8 @@ void PlaylistManager::save(const string& path) {
 void PlaylistManager::add(const string& key, const string& nextSong, const string& nextURL) {
     auto it = playlist.find(key);
     if (it != playlist.end()) {
+        playlist[nextSong] = { nextURL, it->second.second };
         it->second.second = nextSong;
-        playlist[nextSong] = { nextURL, "" };
     }
 }
 
@@ -40,7 +40,7 @@ void PlaylistManager::remove(const string& key) {
     if (key == ROOT || playlist.size() <= 1) return;
     string parent = ROOT, child = playlist[parent].second;
 
-    while (playlist[child].second != "" && child != key) {
+    while (playlist[child].second != "END" && child != key) {
         parent = child;
         child = playlist[child].second;
     }
@@ -71,10 +71,10 @@ vector<pair<string, string>> PlaylistManager::getSongs(const std::string& start_
         current_key = start_key;
     }
 
-    while (!current_key.empty() && playlist.count(current_key)) {
+    while (current_key != "END" && playlist.count(current_key)) {
         const auto& data = playlist[current_key];
 
-        ret.push_back({ data.first, data.first });
+        ret.push_back({ current_key, data.first });
 
         current_key = data.second;
     }
