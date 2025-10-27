@@ -1,4 +1,4 @@
-﻿#include "PlayerGUI.h"
+#include "PlayerGUI.h"
 
 
 void PlayerGUI::initializeControls()
@@ -29,7 +29,7 @@ void PlayerGUI::initializeControls()
     deletelistButton.setVisible(false);
 
     refreshPlaylistDisplay();
-    
+
     // Slider set up
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
@@ -202,7 +202,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         if (!control->audioExist()) {
             if (currentKey.empty()) {
                 currentKey = "front";
-                loadNextTrack(); 
+                loadNextTrack();
             }
             return;
         }
@@ -306,7 +306,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                     std::string newSongPath = file.getFullPathName().toStdString();
                     std::string newSongName = file.getFileNameWithoutExtension().toStdString();
 
-                    std::string key = (currentPlaylist.empty()? "front" : currentPlaylist.back().first);
+                    std::string key = (currentPlaylist.empty() ? "front" : currentPlaylist.back().first);
 
                     control->getPlaylistManager().add(
                         key,
@@ -317,21 +317,21 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                     refreshPlaylistDisplay();
                 }
             });
-            }
+    }
 
     else if (button == &deletelistButton)
     {
         int selectedRow = playlistListBox.getSelectedRow();
 
-            if (selectedRow >= 0 && selectedRow < (int)currentPlaylist.size())
-            {
-                string songToDelete = currentPlaylist[selectedRow].first;
+        if (selectedRow >= 0 && selectedRow < (int)currentPlaylist.size())
+        {
+            string songToDelete = currentPlaylist[selectedRow].first;
 
-                control->getPlaylistManager().remove(songToDelete);
+            control->getPlaylistManager().remove(songToDelete);
 
-                refreshPlaylistDisplay();
-            }
+            refreshPlaylistDisplay();
         }
+    }
 }
 
 void PlayerGUI::selectedRowsChanged(int lastRowSelected)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <JuceHeader.h>
 #include "PlayerAudio.h"
+#include <JuceHeader.h>
 #include <map>
 
 
