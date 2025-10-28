@@ -1,14 +1,51 @@
-"" 
-# Visual Studio
-.vs/
-*.vsidx
-*.user
-*.suo
-*.VC.db
-*.VC.opendb
-
-# Build output
-Build/
+""
+""
+# === JUCE / C++ Projects ===
+# Ignore build and generated files
 Builds/
-bin/
-obj/
+JuceLibraryCode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.obj
+*.pdb
+*.idb
+*.aps
+*.ncb
+*.opendb
+*.cache
+*.ilk
+*.log
+*.tlog/
+*.ipch
+*.db
+*.exe
+*.dll
+*.lib
+*.exp
+*.app/
+*.dSYM/
+*.DS_Store
+*.vs/
+*.vscode/
+*.idea/
+.DS_Store
+
+# === OS Files ===
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# === Misc ===
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# === Optional: exclude JUCE modules if you added them manually ===
+# Modules/  
