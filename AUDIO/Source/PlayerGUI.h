@@ -1,10 +1,11 @@
 #pragma once
 
 #include "PlayerAudio.h"
+#include <JuceHeader.h>
 #include <map>
 
 
-class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public PlayerAudioSignal
+class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public PlayerAudioSignal, public juce::ListBoxModel
 {
 private:
     // Audio
@@ -14,13 +15,16 @@ private:
     juce::TextButton loadButton{ "Load Files" };
     juce::TextButton restartButton{ "Restart" };
     juce::TextButton stopButton{ "Stop" };
-    juce::TextButton playButton{ "Pause ||" };
+    juce::TextButton playButton{ "Play" };
     juce::TextButton muteButton{ "Mute" };
     juce::TextButton go_to_startButton{ "|<" };
     juce::TextButton go_to_endButton{ ">|" };
     juce::TextButton speedButton{ "Speed: 1.0x" };
     juce::TextButton repeatButton{ "Repeat: OFF" };
-    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton, &repeatButton };
+    juce::TextButton playlistButton{ "playlist" };
+    juce::TextButton addlistButton{ "+ Add Song" };
+    juce::TextButton deletelistButton{ "- Delete Song" };
+    std::vector<juce::TextButton*> buttons = { &loadButton, &restartButton, &stopButton, &playButton, &muteButton, &go_to_startButton, &go_to_endButton, &speedButton, &repeatButton, &playlistButton};
 
     // Volume Slider
     juce::Slider volumeSlider;
@@ -35,7 +39,13 @@ private:
                                                     {"|<", &go_to_startButton},
                                                     {">|", &go_to_endButton},
                                                     {"speed", &speedButton},
-                                                    {"repeat", &repeatButton} };
+                                                    {"repeat", &repeatButton},
+                                                    {"playlist", &playlistButton} };
+
+    juce::ListBox playlistListBox;
+    std::vector<std::pair<std::string, std::string>> currentPlaylist;
+    string currentKey;
+    bool playlistSidebarVisible = false;
 
     // Author Name and Title
     juce::Label author;
@@ -51,11 +61,18 @@ private:
 
     void PlayerGUI::initializeControls();
 
+    int getNumRows() override;
+    void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void refreshPlaylistDisplay();
+    void loadNextTrack();
+
 public:
     PlayerGUI();
     PlayerGUI(PlayerAudio& control);
     void paint(juce::Graphics& g) override;
     void resized() override;
+
+    void selectedRowsChanged(int lastRowSelected) override;
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;

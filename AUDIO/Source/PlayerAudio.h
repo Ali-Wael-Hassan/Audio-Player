@@ -1,14 +1,17 @@
-﻿#pragma once
+#pragma once
 
 #include <JuceHeader.h>
 #include <vector>
 #include <algorithm>
 #include "PlayerAudioSignal.h"
+#include "PlaylistManager.h"
 
 class PlayerAudio : public juce::AudioAppComponent {
 private:
     PlayerAudioSignal* listen = nullptr;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
+
+    PlaylistManager playlist;
 
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
@@ -39,6 +42,7 @@ public:
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
+    PlaylistManager& getPlaylistManager();
     void setSignalListener(PlayerAudioSignal* l);
     bool reachEnd();
 };
