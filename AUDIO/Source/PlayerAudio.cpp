@@ -17,29 +17,11 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 	resamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
-
-// edited the getNextAudioBlock for the looping purposes 
-/*
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
-
-	transportSource->getNextAudioBlock(bufferToFill); 
-
+	//transportSource.getNextAudioBlock(bufferToFill);
 	resamplingSource->getNextAudioBlock(bufferToFill);
 	if (transportSource.hasStreamFinished()) {
-		transportSource.setPosition(0.0);
-		transportSource.start();
-	}
-}
-*/
-
-//Here's the Edited version :
-
-
-void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
-	resamplingSource->getNextAudioBlock(bufferToFill);
-	if (loopActive && transportSource.hasStreamFinished()) {
-		transportSource.setPosition(0.0);
-		transportSource.start();
+		listen->playBackFinished();
 	}
 }
 
