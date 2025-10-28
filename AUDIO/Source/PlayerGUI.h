@@ -5,7 +5,7 @@
 #include <map>
 
 
-class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public PlayerAudioSignal, public juce::ListBoxModel
+class PlayerGUI : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public PlayerAudioSignal, public juce::ListBoxModel, public juce::Timer
 {
 private:
     // Audio
@@ -31,6 +31,12 @@ private:
     double lastVal = 0.5;
     bool muted = false;
 
+    //Position Slider 
+    juce::Slider positionSlider;
+    double startPostion = 0.0;
+    bool isStopped = false;
+    bool isUserDraggingPosition = false;
+    
     std::map<std::string, juce::TextButton*> mp = { {"load", &loadButton},
                                                     {"restart", &restartButton}, 
                                                     {"stop", &stopButton},
@@ -76,10 +82,13 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
+    void sliderDragStarted(juce::Slider* slider) override;
     void sliderDragEnded(juce::Slider* slider) override;
+    void timerCallback() override;
 
     void playBackFinished();
 
     juce::TextButton* getButton(std::string s);
     juce::Slider& getVolume();
+    juce::Slider& getPosition();
 };

@@ -37,8 +37,13 @@ public:
     void setPosition(double pos);
     double getLength();
     void setSpeed(double ratio);
+
+    double getAudioPosition();
+    double getAudioLength();
+
     void toggleLooping();
-    bool isLooping() const;
+    bool isLooping() const;   
+
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
