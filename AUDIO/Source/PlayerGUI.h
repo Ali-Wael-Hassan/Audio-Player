@@ -70,6 +70,7 @@ private:
     int getNumRows() override;
     void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void refreshPlaylistDisplay();
+    void updateSelectedRow();
     void loadNextTrack();
 
 public:

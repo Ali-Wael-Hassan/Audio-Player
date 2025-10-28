@@ -69,7 +69,7 @@ void PlayerAudio::reset() {
 	transportSource.setSource(nullptr);
 	titleText = "No Track Loaded";
 	nameText = "Unknown";
-	durationText = "-1";
+	durationText = "00:00";
 	readerSource.reset();
 }
 
@@ -143,7 +143,6 @@ void PlayerAudio::setSpeed(double ratio)
 	}
 }
 
-//*************************************//
 double PlayerAudio::getAudioPosition()
 {
 	return transportSource.getCurrentPosition();
@@ -159,7 +158,6 @@ double PlayerAudio::getLength() {
 }
 
 
-//=================the ToggleLooping =============//
 void PlayerAudio::toggleLooping()
 {
 	loopActive = !loopActive;
@@ -170,25 +168,11 @@ bool PlayerAudio::isLooping() const
 {
 	return loopActive;
 }
-
-
-
-//==================================//
 
 
 
 juce::String PlayerAudio::getName() {
 	return nameText;
-}
-
-void PlayerAudio::toggleLooping()
-{
-	loopActive = !loopActive;
-}
-
-bool PlayerAudio::isLooping() const
-{
-	return loopActive;
 }
 
 juce::String PlayerAudio::getTitle() {

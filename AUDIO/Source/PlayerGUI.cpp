@@ -37,6 +37,12 @@ void PlayerGUI::initializeControls()
     addAndMakeVisible(volumeSlider);
     control->setSignalListener(this);
 
+    // Position Slider Setup
+    positionSlider.setRange(0.0, control->getLength());
+    positionSlider.addListener(this);
+    addAndMakeVisible(positionSlider);
+    positionSlider.setNumDecimalPlacesToDisplay(2);
+
     setSize(500, 250);
 }
 
@@ -44,13 +50,6 @@ int PlayerGUI::getNumRows() {
     return (int)currentPlaylist.size();
 }
 
-    // Position Slider Setup
-    //positionSlider.setRange(0.0, control->getLength());
-    positionSlider.addListener(this);
-    addAndMakeVisible(positionSlider);
-    positionSlider.setNumDecimalPlacesToDisplay(2);
-
-    setSize(500, 250);
 void PlayerGUI::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) {
     if (rowNumber < getNumRows()) {
         std::string songName = currentPlaylist[rowNumber].first;
@@ -62,6 +61,31 @@ void PlayerGUI::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, in
 void PlayerGUI::refreshPlaylistDisplay() {
     currentPlaylist = control->getPlaylistManager().getSongs("front");
     playlistListBox.updateContent();
+}
+
+void PlayerGUI::updateSelectedRow() {
+    if (currentKey.empty())
+    {
+        playlistListBox.deselectAllRows();
+        return;
+    }
+
+    int rowIndexToSelect = -1;
+    for (auto i = 0; i < currentPlaylist.size(); ++i)
+    {
+        if (currentPlaylist[i].first == currentKey)
+        {
+            rowIndexToSelect = i;
+            break;
+        }
+    }
+
+    if (rowIndexToSelect >= 0)
+    {
+        playlistListBox.deselectAllRows();
+
+        playlistListBox.selectRow(rowIndexToSelect, true, false);
+    }
 }
 
 void PlayerGUI::loadNextTrack() {
@@ -92,26 +116,32 @@ void PlayerGUI::loadNextTrack() {
     control->startNew(nextFile);
 
     currentKey = nextKey;
+    name.setText(control->getName(), juce::dontSendNotification);
+    title.setText(control->getTitle(), juce::dontSendNotification);
+    duration.setText(control->getDuration(), juce::dontSendNotification);
 
 
     playButton.setButtonText("Pause ||");
     stoped = false;
+    positionSlider.setRange(0.0, control->getLength(), 0.01);
+    positionSlider.setValue(0.0);
+    updateSelectedRow();
 }
 
-//***********************************//
+
 PlayerGUI::PlayerGUI() : control(nullptr)
 {
     initializeControls();
-    startTimerHz(30);
+    startTimerHz(100);
 }
 
 PlayerGUI::PlayerGUI(PlayerAudio& control) : control(&control)
 {
     initializeControls();
-    startTimerHz(30);
+    startTimerHz(100);
 
 }
-//**************************************//
+
 void PlayerGUI::paint(juce::Graphics& g) {
     juce::Colour darkForest = juce::Colour::fromRGB(10, 25, 20);
     juce::Colour tealGlow = juce::Colour::fromRGB(30, 90, 80);
@@ -162,10 +192,10 @@ void PlayerGUI::resized() {
     auto volumeSliderArea = playerArea.removeFromTop(50).reduced(5);
     volumeSlider.setBounds(volumeSliderArea.reduced(5));
 
-    auto positionSliderArea = bounds.removeFromTop(50).reduced(5);
+    auto positionSliderArea = playerArea.removeFromTop(50).reduced(5);
     positionSlider.setBounds(positionSliderArea.reduced(5));
 
-    auto nameLabelArea = bounds.removeFromTop(30).reduced(0, 5);
+    auto nameLabelArea = playerArea.removeFromTop(30).reduced(0, 5);
     author.setBounds(nameLabelArea.removeFromLeft(70).reduced(5));
     name.setBounds(nameLabelArea.reduced(5));
 
@@ -189,19 +219,27 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
                 auto file = fc.getResult();
                 if (file.existsAsFile()) 
                 {
-                    control->startNew(file);
-                    name.setText(control->getName(), juce::dontSendNotification);
-                    title.setText(control->getTitle(), juce::dontSendNotification);
-                    duration.setText(control->getDuration(), juce::dontSendNotification);
+                    std::string newSongPath = file.getFullPathName().toStdString();
+                    std::string newSongName = file.getFileNameWithoutExtension().toStdString();
 
-                        if (control->audioExist()) 
-                        {
-                            playButton.setButtonText("Pause ||");
-                            stoped = false;
-                            //***********************//
-                            positionSlider.setRange(0.0, control->getLength(), 0.01);
-                            positionSlider.setValue(0.0);
-                        }
+                    std::string key = (currentPlaylist.empty() ? "front" : currentPlaylist.back().first);
+
+                    control->getPlaylistManager().add(
+                        key,
+                        newSongName,
+                        newSongPath
+                    );
+
+                    if (currentKey.empty()) currentKey = "front";
+
+                    refreshPlaylistDisplay();
+                    loadNextTrack();
+                    control->start();
+
+                    playButton.setButtonText("Pause ||");
+                    stoped = false;
+                    positionSlider.setRange(0.0, control->getLength(), 0.01);
+                    positionSlider.setValue(0.0);
                 }
             });
     }
@@ -363,6 +401,22 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
         if (selectedRow >= 0 && selectedRow < (int)currentPlaylist.size())
         {
             string songToDelete = currentPlaylist[selectedRow].first;
+            if (songToDelete == currentKey)
+            {
+                control->stop();
+                control->setPosition(0.0);
+
+                currentKey = "";
+                stoped = true;
+                playButton.setButtonText("Play");
+
+                name.setText("Unknown", juce::dontSendNotification);
+                title.setText("No Track Loaded", juce::dontSendNotification);
+                duration.setText("00:00", juce::dontSendNotification);
+                positionSlider.setRange(0.0, 1.0, 0.01);
+                positionSlider.setValue(0.0);
+                control->reset();
+            }
 
             control->getPlaylistManager().remove(songToDelete);
 
@@ -382,6 +436,12 @@ void PlayerGUI::selectedRowsChanged(int lastRowSelected)
 
         juce::File fileToPlay(selectedPath);
         control->startNew(fileToPlay);
+        name.setText(control->getName(), juce::dontSendNotification);
+        title.setText(control->getTitle(), juce::dontSendNotification);
+        duration.setText(control->getDuration(), juce::dontSendNotification);
+        positionSlider.setRange(0.0, control->getLength(), 0.01);
+        positionSlider.setValue(0.0);
+
 
         playButton.setButtonText("Pause ||");
         stoped = false;
@@ -424,6 +484,9 @@ void PlayerGUI::sliderDragEnded(juce::Slider* slider) {
         if (control != nullptr && control->audioExist())
         {
             control->setPosition(slider->getValue());
+            if (control->reachEnd()) {
+                playBackFinished();
+            }
         }
         isUserDraggingPosition = false;
         return;
@@ -439,6 +502,9 @@ void PlayerGUI::timerCallback()
         // later this will track playback position
         double pos = control->getAudioPosition();
         positionSlider.setValue(pos, juce::dontSendNotification);
+        if (control->reachEnd()) {
+            playBackFinished();
+        }
         ////handling time units convertions
         //int totalMillis = static_cast<int>(pos * 1000.0); // convert to ms
         //int minutes = totalMillis / 60000;

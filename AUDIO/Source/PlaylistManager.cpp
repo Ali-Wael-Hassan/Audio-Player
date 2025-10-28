@@ -30,7 +30,7 @@ void PlaylistManager::save(const string& path) {
 
 void PlaylistManager::add(const string& key, const string& nextSong, const string& nextURL) {
     auto it = playlist.find(key);
-    if (it != playlist.end()) {
+    if (it != playlist.end() && playlist.find(nextSong) == playlist.end()) {
         playlist[nextSong] = { nextURL, it->second.second };
         it->second.second = nextSong;
     }
