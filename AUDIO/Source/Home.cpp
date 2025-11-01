@@ -1,4 +1,4 @@
-﻿#include "Home.h"
+#include "Home.h"
 
 const std::map<std::string, Home::ThemeColors> Home::ThemeColorMap = {
 	{"Dark", {

@@ -1,9 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <JuceHeader.h>
 #include <vector>
 #include <algorithm>
 #include "PlayerAudioSignal.h"
+#include <taglib/fileref.h>
+#include <taglib/tag.h>
 
 class PlayerAudio : public juce::AudioAppComponent {
 private:
