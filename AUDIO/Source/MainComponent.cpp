@@ -39,6 +39,7 @@ void MainComponent::paint(juce::Graphics& g)
 {
     home->paint(g);
 }
+
 void MainComponent::resized()
 {
     home->setBounds(getLocalBounds());
