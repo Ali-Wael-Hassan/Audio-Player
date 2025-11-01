@@ -20,6 +20,8 @@ private:
     juce::TextButton tempAudio4{ "Audio" };
     juce::TextButton tempAudio5{ "Audio" };
     // Top bar
+    juce::TextEditor searchBar;
+
     juce::ImageButton logsButton;
     juce::ImageButton settingsButton;
 
@@ -68,6 +70,15 @@ private:
 
     string currentTheme;
     string currentLanguage;
+
+
+    void layoutTopBar(juce::Rectangle<int>& bounds);
+    void layoutLeftBar(juce::Rectangle<int>& bounds);
+    void layoutPageArea(juce::Rectangle<int>& bounds);
+    void layoutSettingsOverlay();
+
+    void paintBackgroundGradients(juce::Graphics& g, const map<string, juce::Colour>& themeMap);
+    void paintModalDimmer(juce::Graphics& g, const map<string, juce::Colour>& themeMap);
 
     void themeSettingChanged(const juce::String& newThemeName) override;
     void languageSettingChanged(const juce::String& newLanguageName) override;

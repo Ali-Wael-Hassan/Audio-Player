@@ -1,4 +1,4 @@
-#include "Home.h"
+﻿#include "Home.h"
 
 const std::map<std::string, Home::ThemeColors> Home::ThemeColorMap = {
 	{"Dark", {
@@ -37,6 +37,178 @@ const std::map<std::string, Home::ThemeColors> Home::ThemeColorMap = {
 	}}
 };
 
+void Home::layoutTopBar(juce::Rectangle<int>& bounds)
+{
+	int tempWidth = (int)(getWidth() * 0.1);
+	auto topRectangle = bounds.removeFromTop((int)(getHeight() * 0.13));
+
+	logoArea = topRectangle.removeFromLeft(tempWidth);
+	topBarArea = topRectangle;
+
+	auto righArea = topRectangle.removeFromRight((int)(topRectangle.getWidth() * 0.2)).reduced(5);
+	auto buttonWidth1 = righArea.getWidth() / 2;
+
+	auto settingsArea = righArea.removeFromRight(buttonWidth1);
+	settingsButton.setBounds(settingsArea.removeFromTop((int)(settingsArea.getHeight() * 0.7)));
+	settingsText.setBounds(settingsArea);
+
+	auto logsArea = righArea.removeFromRight(buttonWidth1);
+	logsButton.setBounds(logsArea.removeFromTop((int)(logsArea.getHeight() * 0.7)));
+	logsText.setBounds(logsArea);
+
+	searchBar.setBounds(topRectangle.reduced(300, (int)(topRectangle.getHeight() * 0.35)));
+}
+
+void Home::layoutLeftBar(juce::Rectangle<int>& bounds)
+{
+	int tempWidth = (int)(getWidth() * 0.1);
+	auto leftRectangle = bounds.removeFromLeft(tempWidth);
+
+	leftBarArea = leftRectangle;
+	auto buttonColumn = leftBarArea;
+	auto buttonHeight2 = buttonColumn.getHeight() / 7;
+
+	auto homeArea = buttonColumn.removeFromTop(buttonHeight2);
+	homeButton.setBounds(homeArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
+	homeText.setBounds(homeArea);
+
+	auto searchArea = buttonColumn.removeFromTop(buttonHeight2);
+	searchButton.setBounds(searchArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
+	searchText.setBounds(searchArea);
+
+	auto libraryArea = buttonColumn.removeFromTop(buttonHeight2);
+	libraryButton.setBounds(libraryArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
+	libraryText.setBounds(libraryArea);
+
+	playList.setBounds(buttonColumn.removeFromTop(buttonHeight2));
+
+	auto favoritArea = buttonColumn.removeFromTop(buttonHeight2);
+	favoriteButton.setBounds(favoritArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
+	favoriteText.setBounds(favoritArea);
+
+	auto listArea = buttonColumn.removeFromTop(buttonHeight2);
+	listButton.setBounds(listArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
+	listText.setBounds(listArea);
+
+	auto editArea = buttonColumn.removeFromTop(buttonHeight2);
+	editButton.setBounds(editArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
+	editText.setBounds(editArea);
+}
+
+void Home::layoutPageArea(juce::Rectangle<int>& bounds)
+{
+	auto suggest = bounds.removeFromTop((int)(bounds.getHeight() * 0.5));
+	tempSuggest.setBounds(suggest);
+
+	recent.setBounds(bounds.removeFromTop((int)(bounds.getHeight() * 0.3)));
+
+	auto buttonWidth3 = bounds.getWidth() / 5;
+
+	tempAudio5.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
+	tempAudio4.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
+	tempAudio3.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
+	tempAudio2.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
+	tempAudio1.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
+}
+
+void Home::layoutSettingsOverlay()
+{
+	backgroundDimmerArea = getLocalBounds();
+
+	if (isSettingsVisible)
+	{
+		int overlayWidth = (int)(getWidth() * 0.6);
+		int overlayHeight = (int)(getHeight() * 0.7);
+
+		settingsOverlay->setBounds(
+			(getWidth() - overlayWidth) / 2,
+			(getHeight() - overlayHeight) / 2,
+			overlayWidth,
+			overlayHeight
+		);
+		settingsOverlay->setVisible(true);
+	}
+	else
+	{
+		settingsOverlay->setBounds(0, 0, 0, 0);
+		settingsOverlay->setVisible(false);
+	}
+}
+
+void Home::paintBackgroundGradients(juce::Graphics& g, const std::map<string, juce::Colour>& themeMap)
+{
+	juce::Colour backGround1 = themeMap.at("background_top");
+	juce::Colour backGround2 = themeMap.at("background_bottom");
+	juce::ColourGradient gradient(
+		backGround1, 0, 0,
+		backGround2, (float)getWidth(), (float)getHeight(),
+		false
+	);
+	g.setGradientFill(gradient);
+	g.fillRect(getLocalBounds());
+
+	if (topBarArea.getWidth() > 0)
+	{
+		juce::Colour topBarColor1 = themeMap.at("topbar_top");
+		juce::Colour topBarColor2 = themeMap.at("topbar_bottom");
+
+		juce::ColourGradient gradient2(
+			topBarColor1,
+			topBarArea.getTopLeft().toFloat(),
+			topBarColor2,
+			topBarArea.getBottomRight().toFloat(),
+			false
+		);
+
+		g.setGradientFill(gradient2);
+		g.fillRect(topBarArea);
+	}
+
+	if (leftBarArea.getHeight() > 0)
+	{
+		juce::Colour leftBarColor1 = themeMap.at("leftbar_top");
+		juce::Colour leftBarColor2 = themeMap.at("leftbar_bottom");
+
+		juce::ColourGradient gradient2(
+			leftBarColor1,
+			leftBarArea.getTopLeft().toFloat(),
+			leftBarColor2,
+			leftBarArea.getTopRight().toFloat(),
+			false
+		);
+
+		g.setGradientFill(gradient2);
+		g.fillRect(leftBarArea);
+	}
+
+	if (logoArea.getHeight() > 0)
+	{
+		juce::Colour logoColor1 = themeMap.at("logo_top");
+		juce::Colour logoColor2 = themeMap.at("logo_bottom");
+
+		juce::ColourGradient gradient2(
+			logoColor1,
+			logoArea.getTopLeft().toFloat(),
+			logoColor2,
+			logoArea.getBottomRight().toFloat(),
+			false
+		);
+
+		g.setGradientFill(gradient2);
+		g.fillRect(logoArea);
+	}
+}
+
+void Home::paintModalDimmer(juce::Graphics& g, const std::map<string, juce::Colour>& themeMap)
+{
+	if (isSettingsVisible)
+	{
+		juce::Colour settingsColour = themeMap.at("dimmer_color");
+		g.setColour(settingsColour);
+		g.fillRect(backgroundDimmerArea);
+	}
+}
+
 void Home::themeSettingChanged(const juce::String& newThemeName)
 {
 	currentTheme = newThemeName.toStdString();
@@ -55,6 +227,7 @@ void Home::themeSettingChanged(const juce::String& newThemeName)
 	recent.setColour(juce::Label::textColourId, newTextColor);
 
 	repaint();
+	resized();
 }
 
 void Home::languageSettingChanged(const juce::String& newLanguageName)
@@ -224,6 +397,11 @@ Home::Home(const string& themeColor = "Dark", const string& language = "English"
 	addAndMakeVisible(editButton);
 	editButton.addListener(this);
 
+	searchBar.setMultiLine(false);
+	searchBar.setTextToShowWhenEmpty("Search your music library...", juce::Colours::grey);
+	searchBar.setReturnKeyStartsNewLine(false);
+	addAndMakeVisible(searchBar);
+
 	settingsOverlay = std::make_unique<SettingsPage>("Dark");
 	settingsOverlay->addListener(this);
 	settingsOverlay->getCloseButton().addListener(this);
@@ -240,156 +418,21 @@ void Home::paint(juce::Graphics& g) {
 		: "Dark";
 	const auto& themeMap = Home::ThemeColorMap.at(themeKey);
 
-	juce::Colour backGround1 = themeMap.at("background_top");
-	juce::Colour backGround2 = themeMap.at("background_bottom");
-	juce::ColourGradient gradient(
-		backGround1, 0, 0,
-		backGround2, (float)getWidth(), (float)getHeight(),
-		false
-	);
-	g.setGradientFill(gradient);
-	g.fillRect(getLocalBounds());
+	paintBackgroundGradients(g, themeMap);
 
-	if (topBarArea.getWidth() > 0)
-	{
-		juce::Colour topBarColor1 = themeMap.at("topbar_top");
-		juce::Colour topBarColor2 = themeMap.at("topbar_bottom");
+	paintModalDimmer(g, themeMap);
 
-		juce::ColourGradient gradient2(
-			topBarColor1,
-			topBarArea.getTopLeft().toFloat(),
-			topBarColor2,
-			topBarArea.getBottomRight().toFloat(),
-			false
-		);
-
-		g.setGradientFill(gradient2);
-		g.fillRect(topBarArea);
-	}
-
-	if (leftBarArea.getHeight() > 0)
-	{
-		juce::Colour leftBarColor1 = themeMap.at("leftbar_top");
-		juce::Colour leftBarColor2 = themeMap.at("leftbar_bottom");
-
-		juce::ColourGradient gradient2(
-			leftBarColor1,
-			leftBarArea.getTopLeft().toFloat(),
-			leftBarColor2,
-			leftBarArea.getTopRight().toFloat(),
-			false
-		);
-
-		g.setGradientFill(gradient2);
-		g.fillRect(leftBarArea);
-	}
-
-	if (logoArea.getHeight() > 0)
-	{
-		juce::Colour logoColor1 = themeMap.at("logo_top");
-		juce::Colour logoColor2 = themeMap.at("logo_bottom");
-
-		juce::ColourGradient gradient2(
-			logoColor1,
-			logoArea.getTopLeft().toFloat(),
-			logoColor2,
-			logoArea.getBottomRight().toFloat(),
-			false
-		);
-
-		g.setGradientFill(gradient2);
-		g.fillRect(logoArea);
-	}
-
-	if (isSettingsVisible)
-	{
-		juce::Colour settingsColour = themeMap.at("dimmer_color");
-		g.setColour(settingsColour);
-		g.fillRect(backgroundDimmerArea);
-	}
 }
 
 void Home::resized() {
 	auto bounds = getLocalBounds();
-	int tempWidth = (int)(getWidth() * 0.1);
-	auto topRectangle = bounds.removeFromTop((int)(getHeight() * 0.13));
-	auto leftRectangle = bounds.removeFromLeft(tempWidth);
 
-	// Logo
-	logoArea = topRectangle.removeFromLeft(tempWidth);
+	layoutTopBar(bounds);
+	layoutLeftBar(bounds);
 
-	// Top Bar
-	topBarArea = topRectangle;
+	layoutPageArea(bounds);
 
-	auto righArea = topRectangle.removeFromRight((int)(topRectangle.getWidth() * 0.2)).reduced(5);
-	auto buttonWidth1 = righArea.getWidth() / 2;
-	auto settingsArea = righArea.removeFromRight(buttonWidth1);
-	settingsButton.setBounds(settingsArea.removeFromTop((int)(settingsArea.getHeight() * 0.7)));
-	settingsText.setBounds(settingsArea);
-	auto logsArea = righArea.removeFromRight(buttonWidth1);
-	logsButton.setBounds(logsArea.removeFromTop((int)(logsArea.getHeight() * 0.7)));
-	logsText.setBounds(logsArea);
-
-	// Left Bar
-	leftBarArea = leftRectangle;
-	auto buttonColumn = leftBarArea;
-	auto buttonHeight2 = buttonColumn.getHeight() / 7;
-
-	auto homeArea = buttonColumn.removeFromTop(buttonHeight2);
-	homeButton.setBounds(homeArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
-	homeText.setBounds(homeArea);
-	auto searchArea = buttonColumn.removeFromTop(buttonHeight2);
-	searchButton.setBounds(searchArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
-	searchText.setBounds(searchArea);
-	auto libraryArea = buttonColumn.removeFromTop(buttonHeight2);
-	libraryButton.setBounds(libraryArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
-	libraryText.setBounds(libraryArea);
-	playList.setBounds(buttonColumn.removeFromTop(buttonHeight2));
-	auto favoritArea = buttonColumn.removeFromTop(buttonHeight2);
-	favoriteButton.setBounds(favoritArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
-	favoriteText.setBounds(favoritArea);
-	auto listArea = buttonColumn.removeFromTop(buttonHeight2);
-	listButton.setBounds(listArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
-	listText.setBounds(listArea);
-	auto editArea = buttonColumn.removeFromTop(buttonHeight2);
-	editButton.setBounds(editArea.removeFromLeft((int)(tempWidth * 0.6)).reduced(10));
-	editText.setBounds(editArea);
-
-	// Page Area
-	auto suggest = bounds.removeFromTop((int)(bounds.getHeight() * 0.5));
-	tempSuggest.setBounds(suggest);
-
-	recent.setBounds(bounds.removeFromTop((int)(bounds.getHeight() * 0.3)));
-
-	auto buttonWidth3 = bounds.getWidth() / 5;
-
-	tempAudio1.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10,10));
-	tempAudio2.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
-	tempAudio3.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
-	tempAudio4.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
-	tempAudio5.setBounds(bounds.removeFromRight(buttonWidth3).reduced(10, 10));
-
-	backgroundDimmerArea = getLocalBounds();
-
-	if (isSettingsVisible)
-	{
-		int overlayWidth = (int)(getWidth() * 0.6);
-		int overlayHeight = (int)(getHeight() * 0.7);
-
-		settingsOverlay->setBounds(
-			(getWidth() - overlayWidth) / 2,
-			(getHeight() - overlayHeight) / 2,
-			overlayWidth,
-			overlayHeight
-		);
-		settingsOverlay->setVisible(true);
-	}
-	else
-	{
-		settingsOverlay->setBounds(0, 0, 0, 0);
-		settingsOverlay->setVisible(false);
-	}
-
+	layoutSettingsOverlay();
 }
 
 void Home::buttonClicked(juce::Button* button) {
