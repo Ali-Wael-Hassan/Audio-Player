@@ -1,7 +1,7 @@
 #include "PlayerAudio.h"
 
 
-PlayerAudio::PlayerAudio() {
+PlayerAudio::PlayerAudio() : playlist("x.txt") {
 	formatManager.registerBasicFormats();
 
 	resamplingSource = std::make_unique<juce::ResamplingAudioSource>(&transportSource, false, 2);
@@ -18,9 +18,15 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 }
 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
-	//transportSource->getNextAudioBlock(bufferToFill);
+	//transportSource.getNextAudioBlock(bufferToFill);
 	resamplingSource->getNextAudioBlock(bufferToFill);
+	if (transportSource.hasStreamFinished()) {
+		listen->playBackFinished();
+	}
 }
+
+
+
 
 void PlayerAudio::releaseResources() {
 	// transportSource.releaseResources();
@@ -45,7 +51,7 @@ void PlayerAudio::reset() {
 	transportSource.setSource(nullptr);
 	titleText = "No Track Loaded";
 	nameText = "Unknown";
-	durationText = "-1";
+	durationText = "00:00";
 	readerSource.reset();
 }
 
@@ -119,9 +125,86 @@ void PlayerAudio::setSpeed(double ratio)
 	}
 }
 
+double PlayerAudio::getAudioPosition()
+{
+	return transportSource.getCurrentPosition();
+}
+
+double PlayerAudio::getAudioLength()
+{
+	return transportSource.getLengthInSeconds();
+}
+
 double PlayerAudio::getLength() {
 	return transportSource.getLengthInSeconds();
 }
+
+
+void PlayerAudio::toggleLooping()
+{
+	loopActive = !loopActive;
+
+}
+
+bool PlayerAudio::isLooping() const
+{
+	return loopActive;
+}
+
+void PlayerAudio::setMarkers(double position)
+{
+	if (!markerASet)
+	{
+		markerA = position;
+		markerASet = true;
+		DBG("Marker A set at: " << markerA);
+	}
+	else if (!markerBSet)
+	{
+		markerB = position;
+		markerBSet = true;
+		// ensure order
+		if (markerB < markerA)
+			std::swap(markerA, markerB);
+
+		loopingAB = true; // both set, enable looping
+		DBG("Marker B set at: " << markerB << " | A–B Looping Enabled");
+	}
+	else
+	{
+		// reset if pressed again
+		markerASet = markerBSet = false;
+		loopingAB = false;
+		markerA = markerB = -1.0;
+	}
+}
+
+
+
+bool PlayerAudio::isLoopingAB()const 
+{ return loopingAB; }
+
+
+bool PlayerAudio::MarkerASet() const
+{
+	return markerASet;
+}
+
+bool PlayerAudio::MarkerBSet() const
+{
+	return markerBSet;
+}
+
+double PlayerAudio::getMarkerA()
+{
+	return markerA;
+}
+
+double PlayerAudio::getMarkerB()
+{
+	return markerB;
+}
+
 
 juce::String PlayerAudio::getName() {
 	return nameText;
@@ -133,4 +216,16 @@ juce::String PlayerAudio::getTitle() {
 
 juce::String PlayerAudio::getDuration() {
 	return durationText;
+}
+
+PlaylistManager& PlayerAudio::getPlaylistManager() {
+	return playlist;
+}
+
+void PlayerAudio::setSignalListener(PlayerAudioSignal* l) {
+	listen = l;
+}
+
+bool PlayerAudio::reachEnd() {
+	return transportSource.hasStreamFinished();
 }
