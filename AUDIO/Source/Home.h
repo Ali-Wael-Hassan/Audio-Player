@@ -12,77 +12,101 @@
 
 // Settings Header
 #include "SettingsPage.h" 
+#include "LibraryPage.h"
 
 //==============================================================================
 // Required Data Structures
 //==============================================================================
 
-
-// To make it easier to handle search
-struct SongData {
-    juce::String title;
-    juce::String artist;
-    juce::File filePath;
-};
-
 // Required for the ListBox to function correctly
 class SearchResultsModel : public juce::ListBoxModel
 {
 public:
-    SearchResultsModel() = default;
+	SearchResultsModel() = default;
 
-    // Gets new results then update the ListBox
-    void setResults(const juce::Array<SongData>& newResults)
-    {
-        results = newResults;
-        if (resultsListBox)
-            resultsListBox->updateContent();
-    }
+	// Gets new results then update the ListBox
+	void setResults(const juce::Array<SongData>& newResults)
+	{
+		results = newResults;
+		if (resultsListBox)
+			resultsListBox->updateContent();
+	}
 
-    // Allowing communication with other classes(Objects)
-    void setListBox(juce::ListBox* lb) { resultsListBox = lb; }
+	// Allowing communication with other classes(Objects)
+	void setListBox(juce::ListBox* lb) { resultsListBox = lb; }
 
-    int getNumRows() override
-    {
-        return results.size();
-    }
+	int getNumRows() override
+	{
+		return results.size();
+	}
 
-    void setRowTextColor(juce::Colour color) {
-        rowTextColor = color;
-    }
+	void setRowTextColor(juce::Colour color) {
+		rowTextColor = color;
+	}
 
-    // Painting the select boxes elemnts (Box1, Box2, ...)
-    void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override
-    {
-        if (rowNumber < getNumRows())
-        {
-            const auto& song = results.getUnchecked(rowNumber);
+	// Painting the select boxes elemnts (Box1, Box2, ...)
+	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override
+	{
+		if (rowNumber < 0 || rowNumber >= getNumRows()) // Safer check
+			return;
 
-            juce::String rowText = song.title + " - " + song.artist;
+		const auto& song = results.getUnchecked(rowNumber);
 
-            juce::Colour foreground = rowIsSelected ? juce::Colours::black : rowTextColor;
-            juce::Colour background = rowIsSelected ? juce::Colours::cyan.withAlpha(0.7f) : juce::Colours::transparentBlack;
+		juce::Colour foreground = rowIsSelected ? juce::Colours::black : rowTextColor;
+		juce::Colour background = rowIsSelected ? juce::Colours::cyan.withAlpha(0.7f) : juce::Colours::transparentBlack;
+
+		g.setColour(background);
+		g.fillRect(0, 0, width, height);
+
+		int imageSize = height - 8;
+		juce::Rectangle<int> imageBounds(4, 4, imageSize, imageSize);
+
+		// Area for all text
+		juce::Rectangle<int> mainTextArea(imageBounds.getRight() + 8, 0, width - (imageBounds.getRight() + 12), height);
+
+		// Split text area for duration
+		juce::Rectangle<int> durationArea = mainTextArea.removeFromRight((int)(width * 0.15)); // 15% for duration
+		juce::Rectangle<int> titleArtistArea = mainTextArea; // The rest for title/artist
 
 
-            g.setColour(background);
-            g.fillRect(0, 0, width, height);
+		// Draw Thumbnail
+		if (song.thumbnailFile.existsAsFile())
+		{
+			juce::Image thumbnail = juce::ImageCache::getFromFile(song.thumbnailFile);
+			if (thumbnail.isValid())
+			{
+				g.drawImage(thumbnail, imageBounds.toFloat(), juce::RectanglePlacement::centred);
+			}
+		}
+		else
+		{
+			// Placeholder
+			g.setColour(rowTextColor.withAlpha(0.2f));
+			g.fillRect(imageBounds);
+			g.setColour(rowTextColor);
+			g.setFont(imageBounds.getHeight() * 0.6f);
+			g.drawText(JUCE_T("\xe2\x99\xab"), imageBounds, juce::Justification::centred);
+		}
 
-            g.setColour(foreground);
-            g.setFont(juce::Font(14.0f));
+		// Draw Title & Artist
+		juce::String rowText = song.title + " - " + song.artist;
+		g.setColour(foreground);
+		g.setFont(juce::Font(14.0f));
+		g.drawText(rowText, titleArtistArea, juce::Justification::centredLeft, true);
 
-            g.drawText(rowText,
-                5, 0, width - 10, height,
-                juce::Justification::centredLeft, true);
-        }
-    }
+		// Draw Duration
+		g.setFont(juce::Font(13.0f));
+		g.setColour(foreground.withAlpha(0.7f));
+		g.drawText(song.duration, durationArea, juce::Justification::centredRight, true);
+	}
 
 private:
-    // Results array for search
-    juce::Array<SongData> results;
-    // UI ListBox for visualizing the data
-    juce::ListBox* resultsListBox = nullptr;
-    // for theme
-    juce::Colour rowTextColor = juce::Colours::white;
+	// Results array for search
+	juce::Array<SongData> results;
+	// UI ListBox for visualizing the data
+	juce::ListBox* resultsListBox = nullptr;
+	// for theme
+	juce::Colour rowTextColor = juce::Colours::white;
 };
 
 
@@ -93,79 +117,79 @@ private:
 class SearchResultsComponent : public juce::Component
 {
 public:
-    // Setting the Model of the listBox(Previous), Border and Listener for Model
-    SearchResultsComponent()
-    {
-        resultsListBox.setModel(&resultsModel);
-        resultsListBox.setRowHeight(30);
-        resultsListBox.setOutlineThickness(1);
-        resultsModel.setListBox(&resultsListBox);
+	// Setting the Model of the listBox(Previous), Border and Listener for Model
+	SearchResultsComponent()
+	{
+		resultsListBox.setModel(&resultsModel);
+		resultsListBox.setRowHeight(40);
+		resultsListBox.setOutlineThickness(1);
+		resultsModel.setListBox(&resultsListBox);
 
-        // Make status labels visible
-        statusLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-        resultTitleLabel.setFont(juce::Font(14.0f));
-        resultTitleLabel.setJustificationType(juce::Justification::centredLeft);
+		// Make status labels visible
+		statusLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+		resultTitleLabel.setFont(juce::Font(14.0f));
+		resultTitleLabel.setJustificationType(juce::Justification::centredLeft);
 
-        addAndMakeVisible(statusLabel);
-        addAndMakeVisible(resultsListBox);
-        addAndMakeVisible(resultTitleLabel);
-    }
+		addAndMakeVisible(statusLabel);
+		addAndMakeVisible(resultsListBox);
+		addAndMakeVisible(resultTitleLabel);
+	}
 
-    // Dynamic resizing to get in multiple windows size
-    void resized() override
-    {
-        auto bounds = getLocalBounds().reduced(10);
-        // Headers
-        statusLabel.setBounds(bounds.removeFromTop(20));
-        resultTitleLabel.setBounds(bounds.removeFromTop(20));
-        // Results details
-        resultsListBox.setBounds(bounds);
-    }
+	// Dynamic resizing to get in multiple windows size
+	void resized() override
+	{
+		auto bounds = getLocalBounds().reduced(10);
+		// Headers
+		statusLabel.setBounds(bounds.removeFromTop(20));
+		resultTitleLabel.setBounds(bounds.removeFromTop(20));
+		// Results details
+		resultsListBox.setBounds(bounds);
+	}
 
-    // Displaying the BoxList(Array)
-    void displayResultsArray(const juce::Array<SongData>& newResults, const juce::String& searchTerm)
-    {
-        // Update results
-        resultsModel.setResults(newResults);
+	// Displaying the BoxList(Array)
+	void displayResultsArray(const juce::Array<SongData>& newResults, const juce::String& searchTerm)
+	{
+		// Update results
+		resultsModel.setResults(newResults);
 
-        // Checking if there is something in out data with this name
-        if (newResults.size() > 0)
-        {
-            // Format: Found <Size> matches for "<Search Term>"
-            juce::String status =
-                "Found " + juce::String(newResults.size()) + " matches for \"" + searchTerm + "\"";
+		// Checking if there is something in our data with this name
+		if (newResults.size() > 0)
+		{
+			// Format: Found <Size> matches for "<Search Term>"
+			juce::String status =
+				"Found " + juce::String(newResults.size()) + " matches for \"" + searchTerm + "\"";
 
-            // Updating Label
-            statusLabel.setText(status, juce::dontSendNotification);
+			// Updating Label
+			statusLabel.setText(status, juce::dontSendNotification);
 
-            // Show the top result details below the status
-            resultTitleLabel.setText("Top Result: " + newResults.getFirst().title + " - " + newResults.getFirst().artist, juce::dontSendNotification);
-        }
-        else
-        {
-            // If nothing Found
-            statusLabel.setText("No results found for \"" + searchTerm + "\".", juce::dontSendNotification);
-            resultTitleLabel.setText("", juce::dontSendNotification);
-        }
-        // Refresh
-        repaint();
-    }
+			// Show the top result details below the status
+			resultTitleLabel.setText("Top Result: " + newResults.getFirst().title + " - " + newResults.getFirst().artist, juce::dontSendNotification);
+		}
+		else
+		{
+			// If nothing Found
+			statusLabel.setText("No results found for \"" + searchTerm + "\".", juce::dontSendNotification);
+			resultTitleLabel.setText("", juce::dontSendNotification);
+		}
+		// Refresh
+		repaint();
+	}
 
-    // To apply Theme
-    juce::ListBox& getListBox() { return resultsListBox; }
-    SearchResultsModel& getListModel() { return resultsModel; }
-    juce::Label& getStatusLabel() { return statusLabel; }
-    juce::Label& getResultTitleLabel() { return resultTitleLabel; }
+	// To apply Theme
+	juce::ListBox& getListBox() { return resultsListBox; }
+	SearchResultsModel& getListModel() { return resultsModel; }
+	juce::Label& getStatusLabel() { return statusLabel; }
+	juce::Label& getResultTitleLabel() { return resultTitleLabel; }
 
 
 private:
-    // TopBar
-    juce::Label statusLabel;
-    juce::Label resultTitleLabel;
+	// TopBar
+	juce::Label statusLabel;
+	juce::Label resultTitleLabel;
 
-    // ListBox that shows details
-    juce::ListBox resultsListBox;
-    SearchResultsModel resultsModel;
+	// ListBox that shows details
+	juce::ListBox resultsListBox;
+	SearchResultsModel resultsModel;
 };
 
 
@@ -178,103 +202,108 @@ using SongLibraryMap = std::unordered_map<std::string, SongData>;
 
 // Main Class with required Inheritance
 class Home : public juce::Component,
-    public juce::Button::Listener,
-    SettingsPage::Listener,
-    public juce::TextEditor::Listener
+	public juce::Button::Listener,
+	SettingsPage::Listener,
+	public juce::TextEditor::Listener
 {
 private:
-    // Theme Colors shortcut
-    using ThemeColors = std::map<std::string, juce::Colour>;
-    // static map to live across the application (later will use .json file or .xml)
-    static const std::map<std::string, ThemeColors> ThemeColorMap;
+	// Theme Colors shortcut
+	using ThemeColors = std::map<std::string, juce::Colour>;
+	// static map to live across the application (later will use .json file or .xml)
+	static const std::map<std::string, ThemeColors> ThemeColorMap;
 
-    // Home Page Layer
-    juce::TextButton tempSuggest{ "Suggest" };
-    juce::TextButton tempAudio1{ "Audio" };
-    juce::TextButton tempAudio2{ "Audio" };
-    juce::TextButton tempAudio3{ "Audio" };
-    juce::TextButton tempAudio4{ "Audio" };
-    juce::TextButton tempAudio5{ "Audio" };
+	// Home Page Layer
+	juce::TextButton tempSuggest{ "Suggest" };
+	juce::TextButton tempAudio1{ "Audio" };
+	juce::TextButton tempAudio2{ "Audio" };
+	juce::TextButton tempAudio3{ "Audio" };
+	juce::TextButton tempAudio4{ "Audio" };
+	juce::TextButton tempAudio5{ "Audio" };
 
-    // Labels
-    juce::Label playList{ "Playlist" };
-    juce::Label recent{ "Recent" };
+	// Labels
+	juce::Label playList{ "Playlist" };
+	juce::Label recent{ "Recent" };
 
-    // Top Bar
-    juce::TextEditor searchBar;
-    juce::ImageButton logsButton;
-    juce::ImageButton settingsButton;
+	// Top Bar
+	juce::TextEditor searchBar;
+	juce::ImageButton logsButton;
+	juce::ImageButton settingsButton;
 
-    // Labels
-    juce::Label settingsText;
-    juce::Label logsText;
+	// Labels
+	juce::Label settingsText;
+	juce::Label logsText;
 
-    // Left Bar
-    juce::ImageButton homeButton;
-    juce::ImageButton libraryButton;
-    juce::ImageButton favoriteButton;
-    juce::ImageButton listButton;
-    juce::ImageButton editButton;
+	// Left Bar
+	juce::ImageButton homeButton;
+	juce::ImageButton libraryButton;
+	juce::ImageButton favoriteButton;
+	juce::ImageButton listButton;
+	juce::ImageButton editButton;
 
-    // Labels
-    juce::Label homeText;
-    juce::Label searchText;
-    juce::Label libraryText;
-    juce::Label favoriteText;
-    juce::Label listText;
-    juce::Label editText;
+	// Labels
+	juce::Label homeText;
+	juce::Label searchText;
+	juce::Label libraryText;
+	juce::Label favoriteText;
+	juce::Label listText;
+	juce::Label editText;
 
-    // For easier Making Visible and changes
-    std::vector<std::pair<juce::String, juce::Label*>> labels = {
-        {"Home", &homeText}, {"Search", &searchText}, {"Library", &libraryText},
-        {"Favorite", &favoriteText}, {"Mylist", &listText}, {"Edit", &editText},
-        {"Settings", &settingsText}, {"Logs", &logsText}, {"Playlist", &playList}, {"Recent", &recent}
-    };
+	// For easier Making Visible and changes
+	std::vector<std::pair<juce::String, juce::Label*>> labels = {
+		{"Home", &homeText}, {"Search", &searchText}, {"Library", &libraryText},
+		{"Favorite", &favoriteText}, {"Mylist", &listText}, {"Edit", &editText},
+		{"Settings", &settingsText}, {"Logs", &logsText}, {"Playlist", &playList}, {"Recent", &recent}
+	};
 
-    // Setting state
-    std::unique_ptr<SettingsPage> settingsOverlay;
-    bool isSettingsVisible = false;
-    juce::Rectangle<int> backgroundDimmerArea;
+	// Setting state
+	std::unique_ptr<SettingsPage> settingsOverlay;
+	bool isSettingsVisible = false;
+	juce::Rectangle<int> backgroundDimmerArea;
 
-    // Theme prefrences
-    std::string currentTheme;
-    std::string currentLanguage;
+	// Theme prefrences
+	std::string currentTheme;
+	std::string currentLanguage;
 
-    // Search Data
-    SongLibraryMap songMap;
-    SearchResultsComponent searchResultsList;
+	// Search Data
+	SongLibraryMap songMap;
+	SearchResultsComponent searchResultsList;
 
-    // Layout
-    juce::Rectangle<int> topBarArea;
-    juce::Rectangle<int> logoArea;
-    juce::Rectangle<int> leftBarArea;
+	// Layout
+	juce::Rectangle<int> topBarArea;
+	juce::Rectangle<int> logoArea;
+	juce::Rectangle<int> leftBarArea;
 
-    // HELPER METHODS
-    // Layers
-    void layoutTopBar(juce::Rectangle<int>& bounds);
-    void layoutLeftBar(juce::Rectangle<int>& bounds);
-    void layoutPageArea(juce::Rectangle<int>& bounds);
-    void layoutSettingsOverlay();
+	// Library Page
+	std::unique_ptr<LibraryPage> libraryPage;
+	std::unique_ptr<LibraryPage> favoritePage;
+	std::unique_ptr<LibraryPage> listPage;
 
-    // Painting
-    void paintBackgroundGradients(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
-    void paintModalDimmer(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
+	// HELPER METHODS
+	// Layers
+	void layoutTopBar(juce::Rectangle<int>& bounds);
+	void layoutLeftBar(juce::Rectangle<int>& bounds);
+	void layoutPageArea(juce::Rectangle<int>& bounds);
+	void layoutSettingsOverlay();
+
+	// Painting
+	void paintBackgroundGradients(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
+	void paintModalDimmer(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
 
 public:
-    // Constructor
-    Home(const std::string& themeColor, const std::string& language);
-    ~Home() override = default;
+	// Constructor
+	Home(const std::string& themeColor, const std::string& language);
+	~Home() override = default;
 
-    // UI visuals
-    void paint(juce::Graphics& g) override;
-    void resized() override;
+	// UI visuals
+	void paint(juce::Graphics& g) override;
+	void resized() override;
 
-    // Logic Methods
-    void buttonClicked(juce::Button*) override;
-    void themeSettingChanged(const juce::String& newThemeName) override;
-    void languageSettingChanged(const juce::String& newLanguageName) override;
-    void textEditorTextChanged(juce::TextEditor& editor) override;
+	// Logic Methods
+	void buttonClicked(juce::Button*) override;
+	void themeSettingChanged(const juce::String& newThemeName) override;
+	void languageSettingChanged(const juce::String& newLanguageName) override;
+	void textEditorTextChanged(juce::TextEditor& editor) override;
 
-    void loadSongsFromFile(const juce::File& libraryFile);
-    juce::Array<SongData> findSongsByPartialTitle(const juce::String& targetTerm);
+	void loadSongsFromFile(const juce::File& libraryFile);
+	juce::Array<SongData> findSongsByPartialTitle(const juce::String& targetTerm);
 };

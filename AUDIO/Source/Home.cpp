@@ -1,4 +1,5 @@
 #include "Home.h"
+// Assuming "LibraryPage.h" is included in "Home.h"
 
 //==============================================================================
 // STATIC MEMBER INITIALIZATION
@@ -154,6 +155,19 @@ Home::Home(const std::string& themeColor, const std::string& language)
 	addAndMakeVisible(searchResultsList);
 	searchResultsList.setVisible(false);
 
+	// Other Pages
+	libraryPage = std::make_unique<LibraryPage>(currentTheme, currentLanguage, "List.txt", "PlayList.txt");
+	addAndMakeVisible(*libraryPage);
+	libraryPage->setVisible(false);
+
+	favoritePage = std::make_unique<LibraryPage>(currentTheme, currentLanguage, "FavoritSong.txt", "FavoritPlaylist.txt");
+	addAndMakeVisible(*favoritePage);
+	favoritePage->setVisible(false);
+
+	listPage = std::make_unique<LibraryPage>(currentTheme, currentLanguage, "UserSongs.txt", "UserPlaylist.txt");
+	addAndMakeVisible(*listPage);
+	listPage->setVisible(false);
+
 	// Load Data
 	juce::File f("List.txt");
 	loadSongsFromFile(f);
@@ -169,7 +183,7 @@ Home::Home(const std::string& themeColor, const std::string& language)
 void Home::paint(juce::Graphics& g) {
 	const std::string& themeKey = (Home::ThemeColorMap.count(currentTheme) > 0) ? currentTheme : "Dark";
 	const auto& themeMap = Home::ThemeColorMap.at(themeKey);
-	// Defined Layout Helpers
+
 	paintBackgroundGradients(g, themeMap);
 	paintModalDimmer(g, themeMap);
 }
@@ -181,15 +195,14 @@ void Home::resized() {
 	layoutTopBar(bounds);
 	layoutLeftBar(bounds);
 
-	// Layout the standard page content
 	layoutPageArea(bounds);
 
 	layoutSettingsOverlay();
 
-	// Positioning of Search Overlay
+	settingsOverlay->toFront(true);
+
 	if (searchResultsList.isVisible())
 	{
-		// Anchor the overlay to the searchBar's final position
 		juce::Rectangle<int> barBounds = searchBar.getBounds();
 
 		const int overlayWidth = barBounds.getWidth();
@@ -202,7 +215,6 @@ void Home::resized() {
 			overlayHeight
 		);
 
-		// Draw on Top
 		searchResultsList.toFront(true);
 	}
 }
@@ -230,7 +242,12 @@ void Home::buttonClicked(juce::Button* button) {
 	}
 	else if (button == &homeButton)
 	{
-		// Return to default Home Page View
+		if (libraryPage) libraryPage->setVisible(false);
+
+		if (favoritePage) favoritePage->setVisible(false);
+
+		if (listPage) listPage->setVisible(false);
+
 		searchResultsList.setVisible(false);
 
 		tempSuggest.setVisible(true);
@@ -240,6 +257,77 @@ void Home::buttonClicked(juce::Button* button) {
 		tempAudio3.setVisible(true);
 		tempAudio4.setVisible(true);
 		tempAudio5.setVisible(true);
+
+		resized();
+		repaint();
+	}
+	else if (button == &libraryButton)
+	{
+		if (libraryPage) 
+		{
+			libraryPage->setVisible(true);
+			libraryPage->loadSongDataFromFile();
+			libraryPage->loadPlaylistDataFromFile();
+		}
+
+		if (favoritePage) favoritePage->setVisible(false);
+
+		if (listPage) listPage->setVisible(false);
+		tempSuggest.setVisible(false);
+		recent.setVisible(false);
+		tempAudio1.setVisible(false);
+		tempAudio2.setVisible(false);
+		tempAudio3.setVisible(false);
+		tempAudio4.setVisible(false);
+		tempAudio5.setVisible(false);
+
+		resized();
+		repaint();
+	}
+	else if (button == &favoriteButton)
+	{
+		if (libraryPage) libraryPage->setVisible(false);
+
+		if (favoritePage)
+		{
+			favoritePage->setVisible(true);
+			favoritePage->loadSongDataFromFile();
+			favoritePage->loadPlaylistDataFromFile();
+		}
+
+		if (listPage) listPage->setVisible(false);
+
+		tempSuggest.setVisible(false);
+		recent.setVisible(false);
+		tempAudio1.setVisible(false);
+		tempAudio2.setVisible(false);
+		tempAudio3.setVisible(false);
+		tempAudio4.setVisible(false);
+		tempAudio5.setVisible(false);
+
+		resized();
+		repaint();
+	}
+	else if (button == &listButton)
+	{
+		if (libraryPage) libraryPage->setVisible(false);
+
+		if (favoritePage) favoritePage->setVisible(false);
+
+		if (listPage)
+		{
+			listPage->setVisible(true);
+			listPage->loadSongDataFromFile();
+			listPage->loadPlaylistDataFromFile();
+		}
+
+		tempSuggest.setVisible(false);
+		recent.setVisible(false);
+		tempAudio1.setVisible(false);
+		tempAudio2.setVisible(false);
+		tempAudio3.setVisible(false);
+		tempAudio4.setVisible(false);
+		tempAudio5.setVisible(false);
 
 		resized();
 		repaint();
@@ -329,7 +417,7 @@ void Home::themeSettingChanged(const juce::String& newThemeName)
 		button.setColour(juce::TextButton::buttonColourId, buttonNormalColor);
 		button.setColour(juce::TextButton::textColourOffId, newTextColor);
 		button.setColour(juce::TextButton::buttonOnColourId, buttonHoverColor);
-	};
+		};
 
 	updateTextButton(tempSuggest);
 	updateTextButton(tempAudio1);
@@ -341,7 +429,7 @@ void Home::themeSettingChanged(const juce::String& newThemeName)
 	auto updateImageButton = [&](juce::ImageButton& button) {
 		button.setColour(juce::TextButton::buttonColourId, buttonNormalColor);
 		button.setColour(juce::TextButton::buttonOnColourId, buttonHoverColor);
-	};
+		};
 
 	updateImageButton(homeButton);
 	updateImageButton(libraryButton);
@@ -351,6 +439,15 @@ void Home::themeSettingChanged(const juce::String& newThemeName)
 	updateImageButton(settingsButton);
 	updateImageButton(logsButton);
 
+	if (libraryPage)
+		libraryPage->themeSettingChanged(newThemeName);
+
+	if (favoritePage)
+		favoritePage->themeSettingChanged(newThemeName);
+
+	if (listPage)
+		listPage->themeSettingChanged(newThemeName);
+
 	repaint();
 	resized();
 }
@@ -359,6 +456,7 @@ void Home::themeSettingChanged(const juce::String& newThemeName)
 void Home::languageSettingChanged(const juce::String& newLanguageName)
 {
 	currentLanguage = newLanguageName.toStdString();
+	if (libraryPage) libraryPage->languageSettingChanged(newLanguageName);
 	repaint();
 	resized();
 }
@@ -424,6 +522,24 @@ void Home::layoutLeftBar(juce::Rectangle<int>& bounds)
 // Page Content
 void Home::layoutPageArea(juce::Rectangle<int>& bounds)
 {
+	if (libraryPage && libraryPage->isVisible())
+	{
+		libraryPage->setBounds(bounds);
+		return;
+	}
+
+	if (favoritePage && favoritePage->isVisible())
+	{
+		favoritePage->setBounds(bounds);
+		return;
+	}
+
+	if (listPage && listPage->isVisible())
+	{
+		listPage->setBounds(bounds);
+		return;
+	}
+
 	auto suggest = bounds.removeFromTop((int)(bounds.getHeight() * 0.5));
 	tempSuggest.setBounds(suggest);
 
@@ -516,32 +632,55 @@ void Home::loadSongsFromFile(const juce::File& libraryFile)
 
 			if (currentLine.trim().isEmpty()) continue;
 
-			juce::String title, artist, filePathStr;
-			juce::String remainder = currentLine;
+			juce::StringArray parts;
+			parts.addTokens(currentLine, "|", "");
 
-			int delimiterPos1 = remainder.indexOfChar('|');
 
-			if (delimiterPos1 > 0)
+			if (parts.size() >= 3)
 			{
-				title = remainder.substring(0, delimiterPos1).trim();
-				remainder = remainder.substring(delimiterPos1 + 1);
-				int delimiterPos2 = remainder.indexOfChar('|');
+				juce::String title = parts[0].trim();
+				juce::String artist = parts[1].trim();
+				juce::String audioSource = parts[2].trim();
 
-				if (delimiterPos2 > 0)
+				if (title.isNotEmpty())
 				{
-					artist = remainder.substring(0, delimiterPos2).trim();
-					filePathStr = remainder.substring(delimiterPos2 + 1).trim();
-					juce::File newFile(filePathStr);
+					SongData newSong;
+					newSong.title = title;
+					newSong.artist = artist;
 
-					if (newFile.existsAsFile() && title.isNotEmpty())
+					if (audioSource.startsWithIgnoreCase("http://") || audioSource.startsWithIgnoreCase("https://"))
 					{
-						SongData newSong;
-						newSong.title = title;
-						newSong.artist = artist;
-						newSong.filePath = newFile;
-
-						songMap.insert({ newSong.title.toStdString(), newSong });
+						newSong.url = audioSource;
 					}
+					else
+					{
+						newSong.filePath = juce::File(audioSource);
+					}
+
+					if (parts.size() >= 4)
+					{
+						juce::String thumbSource = parts[3].trim();
+						if (thumbSource.startsWithIgnoreCase("http://") || thumbSource.startsWithIgnoreCase("https://"))
+						{
+							newSong.thumbnailUrl = thumbSource;
+						}
+						else
+						{
+							newSong.thumbnailFile = juce::File(thumbSource);
+						}
+					}
+
+					if (parts.size() >= 5)
+					{
+						newSong.duration = parts[4].trim();
+					}
+
+					if (parts.size() >= 6)
+					{
+						newSong.isFavorite = (parts[5].trim().compareIgnoreCase("true") == 0);
+					}
+
+					songMap.insert({ newSong.title.toStdString(), newSong });
 				}
 			}
 		}
