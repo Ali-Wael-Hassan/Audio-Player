@@ -30,8 +30,6 @@ void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
 }
 
 
-
-
 void PlayerAudio::releaseResources() {
     resamplingSource->releaseResources();
     readerSource.reset();
@@ -244,60 +242,6 @@ PlaylistManager& PlayerAudio::getPlaylistManager() {
 
 void PlayerAudio::setSignalListener(PlayerAudioSignal* l) {
     listen = l;
-}
-
-void PlayerAudio::setMarkers(double position)
-{
-	if (!markerASet)
-	{
-		markerA = position;
-		markerASet = true;
-		DBG("Marker A set at: " << markerA);
-	}
-	else if (!markerBSet)
-	{
-		markerB = position;
-		markerBSet = true;
-		// ensure order
-		if (markerB < markerA)
-			std::swap(markerA, markerB);
-
-		loopingAB = true; // both set, enable looping
-		DBG("Marker B set at: " << markerB << " | A�B Looping Enabled");
-	}
-	else
-	{
-		// reset if pressed again
-		markerASet = markerBSet = false;
-		loopingAB = false;
-		markerA = markerB = -1.0;
-	}
-}
-
-
-
-bool PlayerAudio::isLoopingAB()const 
-{ return loopingAB; }
-
-
-bool PlayerAudio::MarkerASet() const
-{
-	return markerASet;
-}
-
-bool PlayerAudio::MarkerBSet() const
-{
-	return markerBSet;
-}
-
-double PlayerAudio::getMarkerA()
-{
-	return markerA;
-}
-
-double PlayerAudio::getMarkerB()
-{
-	return markerB;
 }
 
 void PlayerAudio::jumpTime(double seconds)

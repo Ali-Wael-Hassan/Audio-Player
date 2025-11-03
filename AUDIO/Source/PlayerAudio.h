@@ -14,8 +14,6 @@ private:
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
     PlaylistManager playlist;
 
-    PlaylistManager playlist;
-
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
@@ -53,6 +51,7 @@ public:
     void setSpeed(double ratio);
     double getAudioPosition();
     double getAudioLength();
+
     //Task 10
     void setMarkers(double position);
     bool isLoopingAB()const;
@@ -63,13 +62,6 @@ public:
 
     void toggleLooping();
     bool isLooping() const;
-    //Task 10
-    void setMarkers(double position);
-    bool isLoopingAB()const;
-    bool MarkerASet()const;
-    bool MarkerBSet()const;
-    double getMarkerA();
-    double getMarkerB();
 
     juce::String getName();
     juce::String getTitle();

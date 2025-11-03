@@ -471,8 +471,6 @@ void PlayerGUI::resized() {
 		loadButtonHeight
 	);
 
-        addlistButton.setBounds(sidebarButtonRow.removeFromLeft(sidebarButtonRow.getWidth() / 2).reduced(2));
-        deletelistButton.setBounds(sidebarButtonRow.reduced(2));
 
 
 	// Control buttons
@@ -710,16 +708,6 @@ void PlayerGUI::timerCallback()
 		if (control->reachEnd()) {
 			playBackFinished();
 		}
-    
-    if (control->isLoopingAB() && control->MarkerASet() && control->MarkerBSet())
-    {
-        double current = control->getAudioPosition(); // you'll need this getter
-        double markerB = control->getMarkerB();
-        double markerA = control->getMarkerA();
-
-        if (current >= markerB)
-            control->setPosition(markerA);
-    }
 	}
 
 	if (control->isLoopingAB() && control->MarkerASet() && control->MarkerBSet())
