@@ -10,7 +10,6 @@ class PlayerAudio : public juce::AudioAppComponent {
 private:
     PlayerAudioSignal* listen = nullptr;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
-
     PlaylistManager playlist;
 
     juce::AudioFormatManager formatManager;
@@ -19,14 +18,17 @@ private:
 
     juce::String titleText = "No Track Loaded";
     juce::String nameText = "Unknown";
-    juce::String durationText = "0:00";
+    juce::String durationText = "00:00";
     bool loopActive = false;
+
 public:
     PlayerAudio();
     ~PlayerAudio();
+
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
+
     bool audioExist();
     void start();
     void stop();
@@ -35,19 +37,29 @@ public:
     void setGain(float val);
     void startNew(juce::File file);
     void setPosition(double pos);
+    void jumpTime(double seconds);
     double getLength();
     void setSpeed(double ratio);
-
     double getAudioPosition();
     double getAudioLength();
 
     void toggleLooping();
-    bool isLooping() const;   
+    bool isLooping() const;
 
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
+
     PlaylistManager& getPlaylistManager();
     void setSignalListener(PlayerAudioSignal* l);
     bool reachEnd();
+
+    // عشان الـ Thumbnail يقدر يقرأ الملفات
+    juce::AudioFormatManager& getFormatManager() { return formatManager; }
+
+    // عشان نعرف مكان الـ playhead (الخط الأحمر)
+    double getCurrentPosition() const { return transportSource.getCurrentPosition(); }
+
+    // عشان نعرف لو الصوت شغال 
+    bool isPlaying() const { return transportSource.isPlaying(); }
 };
