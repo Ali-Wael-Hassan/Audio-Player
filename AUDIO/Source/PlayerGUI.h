@@ -41,13 +41,14 @@ private:
 	juce::TextButton repeatButton;
 	juce::TextButton forwardButton;
 	juce::TextButton backwardButton;
+  juce::TextButton markerButton{ "Flag Marker A/B:Not Set" };
 	juce::TextButton settingsButton;
 
 
 	std::vector<juce::TextButton*> buttons = {
 		&loadButton, &restartButton, &stopButton, &playButton,
 		&muteButton, &go_to_startButton, &go_to_endButton,
-		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton
+		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton, &markerButton
 	};
 
 	// Playlist Panel Controls //زوات حاجات بس فى حاجات منهم مش شغاله 
@@ -249,6 +250,12 @@ private:
 	juce::Rectangle<int> controlButtonsArea;
 	juce::Rectangle<int> playlistPanelArea;
 	juce::Rectangle<int> headerBoxArea;
+
+    int getNumRows() override;
+    void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void refreshPlaylistDisplay();
+    void updateSelectedRow();
+    void loadNextTrack();
 
 public:
 	PlayerGUI();
