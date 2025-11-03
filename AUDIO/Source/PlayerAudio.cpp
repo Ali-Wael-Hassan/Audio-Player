@@ -17,7 +17,6 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
     resamplingSource->getNextAudioBlock(bufferToFill);
 
-    // الكود الجديد: بيشيك لو الـ loop مفعّل
     if (loopActive && transportSource.hasStreamFinished()) {
         transportSource.setPosition(0.0);
         transportSource.start();
@@ -190,7 +189,7 @@ void PlayerAudio::setSignalListener(PlayerAudioSignal* l) {
 
 void PlayerAudio::jumpTime(double seconds)
 {
-    if (!audioExist()) return; //ب chack شغال ولا لا
+    if (!audioExist()) return; //� chack ���� ��� ��
 
     double currentPos = getAudioPosition();
     double totalLength = getLength();

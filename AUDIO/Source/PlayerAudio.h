@@ -56,12 +56,9 @@ public:
     void setSignalListener(PlayerAudioSignal* l);
     bool reachEnd();
 
-    // عشان الـ Thumbnail يقدر يقرأ الملفات
     juce::AudioFormatManager& getFormatManager() { return formatManager; }
 
-    // عشان نعرف مكان الـ playhead (الخط الأحمر)
     double getCurrentPosition() const { return transportSource.getCurrentPosition(); }
 
-    // عشان نعرف لو الصوت شغال 
     bool isPlaying() const { return transportSource.isPlaying(); }
 };
