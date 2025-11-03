@@ -41,13 +41,14 @@ private:
 	juce::TextButton repeatButton;
 	juce::TextButton forwardButton;
 	juce::TextButton backwardButton;
+	juce::TextButton markerButton{ "Flag Marker A/B:Not Set" };
 	juce::TextButton settingsButton;
 
 
 	std::vector<juce::TextButton*> buttons = {
 		&loadButton, &restartButton, &stopButton, &playButton,
 		&muteButton, &go_to_startButton, &go_to_endButton,
-		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton
+		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton, & markerButton
 	};
 
 	// Playlist Panel Controls //زوات حاجات بس فى حاجات منهم مش شغاله 
@@ -267,7 +268,6 @@ public:
 	void playBackFinished() override;//بتتنفذ لما الأغنية تخلص
 	void timerCallback() override;// بتتنفذ كل فترة معينة (زي تحديث وقت الأغنية كل ثانية
 
-	// --- ADDED: Missing Function Declarations ---
 	void handleAsyncUpdate() override;
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;//بتتنفذ لما يحصل تغيير في الصوت (زي لما يتحمل ملف جديد)
 	// تحريك ال wave 

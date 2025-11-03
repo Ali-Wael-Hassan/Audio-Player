@@ -153,6 +153,62 @@ double PlayerAudio::getAudioLength()
     return transportSource.getLengthInSeconds();
 }
 
+void PlayerAudio::setMarkers(double position)
+{
+    if (!markerASet)
+    {
+        markerA = position;
+        markerASet = true;
+        DBG("Marker A set at: " << markerA);
+    }
+    else if (!markerBSet)
+    {
+        markerB = position;
+        markerBSet = true;
+        // ensure order
+        if (markerB < markerA)
+            std::swap(markerA, markerB);
+
+        loopingAB = true; // both set, enable looping
+        DBG("Marker B set at: " << markerB << " | A�B Looping Enabled");
+    }
+    else
+    {
+        // reset if pressed again
+        markerASet = markerBSet = false;
+        loopingAB = false;
+        markerA = markerB = -1.0;
+    }
+}
+
+
+
+bool PlayerAudio::isLoopingAB()const
+{
+    return loopingAB;
+}
+
+
+bool PlayerAudio::MarkerASet() const
+{
+    return markerASet;
+}
+
+bool PlayerAudio::MarkerBSet() const
+{
+    return markerBSet;
+}
+
+double PlayerAudio::getMarkerA()
+{
+    return markerA;
+}
+
+double PlayerAudio::getMarkerB()
+{
+    return markerB;
+}
+
 double PlayerAudio::getLength() {
     return transportSource.getLengthInSeconds();
 }
@@ -189,7 +245,7 @@ void PlayerAudio::setSignalListener(PlayerAudioSignal* l) {
 
 void PlayerAudio::jumpTime(double seconds)
 {
-    if (!audioExist()) return; //� chack ���� ��� ��
+    if (!audioExist()) return;
 
     double currentPos = getAudioPosition();
     double totalLength = getLength();

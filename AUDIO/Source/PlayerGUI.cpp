@@ -569,6 +569,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 		if (control->audioExist())
 		{
 			control->jumpTime(10.0);
+			positionSlider.setValue(control->getAudioPosition());
 		}
 	}
 	else if (button == &backwardButton)
@@ -576,17 +577,14 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 		if (control->audioExist())
 		{
 			control->jumpTime(-10.0);
+			positionSlider.setValue(control->getAudioPosition());
 		}
 	}
 
 
 	else if (button == &settingsButton)
 	{
-		/////////// settiingggggggggggggggggggg
-		/////////// settiingggggggggggggggggggg
-		/// علي وائل>>>
-
-		DBG("Settings Button Clicked!");
+		
 	}
 
 
@@ -628,6 +626,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 		if (control->audioExist()) {
 			control->stop();
 			control->setPosition(0.0);
+			positionSlider.setValue(0.0);
 			stoped = true;
 			playButton.setButtonText(juce::String::fromUTF8("\xE2\x96\xB6"));
 			repaint(waveformArea);
@@ -709,6 +708,16 @@ void PlayerGUI::timerCallback()
 		if (control->reachEnd()) {
 			playBackFinished();
 		}
+	}
+
+	if (control->isLoopingAB() && control->MarkerASet() && control->MarkerBSet())
+	{
+		double current = control->getAudioPosition();
+		double markerB = control->getMarkerB();
+		double markerA = control->getMarkerA();
+
+		if (current >= markerB)
+			control->setPosition(markerA);
 	}
 }
 

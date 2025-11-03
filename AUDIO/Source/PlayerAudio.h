@@ -23,6 +23,13 @@ private:
     juce::String durationText = "00:00";
     bool loopActive = false;
 
+    //Task 10
+    double markerA = -1.0;
+    double markerB = -1.0;
+    bool loopingAB = false;
+    bool markerASet = false;
+    bool markerBSet = false;
+
 public:
     PlayerAudio();
     ~PlayerAudio();
@@ -44,6 +51,13 @@ public:
     void setSpeed(double ratio);
     double getAudioPosition();
     double getAudioLength();
+    //Task 10
+    void setMarkers(double position);
+    bool isLoopingAB()const;
+    bool MarkerASet()const;
+    bool MarkerBSet()const;
+    double getMarkerA();
+    double getMarkerB();
 
     void toggleLooping();
     bool isLooping() const;
