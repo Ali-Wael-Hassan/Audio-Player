@@ -5,7 +5,9 @@ MainComponent::MainComponent()
     audio = new PlayerAudio();
     GUI = new PlayerGUI(*audio);
 
-    addAndMakeVisible(GUI);
+    home = new Home("Dark", "English", GUI, audio);
+
+    addAndMakeVisible(home);
     setAudioChannels(0, 2);
 }
 
@@ -33,18 +35,18 @@ void MainComponent::releaseResources()
 
 void MainComponent::paint(juce::Graphics& g)
 {
-    GUI->paint(g);
+    home->paint(g);
 }
 void MainComponent::resized()
 {
-    GUI->setBounds(getLocalBounds());
+    home->setBounds(getLocalBounds());
 
-    GUI->resized();
+    home->resized();
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
 {
-    GUI->buttonClicked(button);
+    home->buttonClicked(button);
 }
 
 void MainComponent::sliderValueChanged(juce::Slider* slider)

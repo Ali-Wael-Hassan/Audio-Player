@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include <vector>
 #include "PlayerGUI.h"
+#include "Home.h"
 
 class MainComponent : public juce::AudioAppComponent,
     public juce::Button::Listener,
@@ -30,6 +31,8 @@ private:
     PlayerAudio* audio;
 
     PlayerGUI* GUI;
+
+    Home* home;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
