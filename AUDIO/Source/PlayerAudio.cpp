@@ -69,35 +69,50 @@ void PlayerAudio::startNew(juce::File file) {
     if (auto* reader = formatManager.createReaderFor(file)) {
         reset();
 
-        // Extract artist metadata
-        juce::String artistKeys[] = { "TPE1", "ARTIST", "IART" };
-        juce::String artist;
+        TagLib::FileRef openFile(file.getFullPathName().toRawUTF8());
 
-        for (auto& key : artistKeys)
+        juce::String artistText = "Unknown Artist";
+        juce::String titleTempText = file.getFileNameWithoutExtension();
+        const juce::StringArray artistKeys = { "TPE1", "ARTIST", "TCON", "PERFORMER", "IART" };
+        const juce::StringArray titleKeys = { "TIT2", "TITLE", "INAM", "NAME" };
+        for (const auto& key : artistKeys)
         {
-            artist = reader->metadataValues[key].trim();
-            if (artist.isNotEmpty())
+            juce::String value = reader->metadataValues[key].trim();
+            if (value.isNotEmpty()) {
+                artistText = value.trim();
                 break;
+            }
         }
 
-        nameText = (artist.isNotEmpty() ? artist : "Unknown Artist");
-
-        // Extract title metadata
-        juce::String titleKeys[] = { "TIT2", "TITLE", "INAM" };
-        juce::String title;
-
-        for (auto& key : titleKeys)
+        for (const auto& key : titleKeys)
         {
-            title = reader->metadataValues[key].trim();
-            if (title.isNotEmpty())
+            juce::String value = reader->metadataValues[key].trim();
+            if (value.isNotEmpty()) {
+                titleTempText = value.trim();
                 break;
+            }
         }
+
+        if (!openFile.isNull() && openFile.tag()) {
+            TagLib::Tag* tagObject = openFile.tag();
+
+            juce::String artist = juce::String(tagObject->artist().toCString(true));
+            if (artist.isNotEmpty()) {
+                artistText = artist.trim();
+            }
+
+            juce::String title = juce::String(tagObject->title().toCString(true));
+            if (title.isNotEmpty()) {
+                titleTempText = title.trim();
+            }
+        }
+
+        nameText = artistText;
+        titleText = titleTempText;
 
         readerSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
         transportSource.setSource(readerSource.get(), 0, nullptr, reader->sampleRate);
-        titleText = (title.isNotEmpty() ? title : file.getFileNameWithoutExtension());
 
-        // Format duration
         int duration = transportSource.getLengthInSeconds();
 
         int hours = duration / 3600;
@@ -111,7 +126,7 @@ void PlayerAudio::startNew(juce::File file) {
 
         time += juce::String::formatted("%02d:%02d", minutes, seconds);
 
-        durationText = (time.isNotEmpty() ? time : "00:00");
+        durationText = (time.isNotEmpty() ? time : "0:00");
         transportSource.start();
     }
 }

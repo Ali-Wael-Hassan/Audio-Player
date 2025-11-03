@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include <vector>
 #include <algorithm>
+#include <fileref.h>
+#include <tag.h>
 #include "PlayerAudioSignal.h"
 #include "PlaylistManager.h"
 
