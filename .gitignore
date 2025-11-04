@@ -34,8 +34,7 @@ Task11_/
 *.vs/
 *.vscode/
 *.idea/
-*.txt
-*.png
+
 .DS_Store
 
 # === OS Files ===
