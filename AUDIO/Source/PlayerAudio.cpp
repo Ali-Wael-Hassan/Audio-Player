@@ -281,6 +281,48 @@ bool PlayerAudio::isLooping() const
     return loopActive;
 }
 
+//Task 14 ========================================//
+
+void PlayerAudio::addMarker(const juce::String& name, double position)
+{
+    markers.push_back({ name, position });
+}
+
+void PlayerAudio::removeMarkerr(int index)
+{
+    if (index >= 0 && index < markers.size()) {
+        markers.erase(markers.begin() + index);
+    }
+}
+
+void PlayerAudio::goToMarker(int index)
+{
+    if (index >= 0 && index < markers.size()) {
+        transportSource.setPosition(markers[index].position);
+    }
+}
+
+void PlayerAudio::setLoopBetweenMarkers(int startIndex, int endIndex)
+{
+    if (startIndex >= 0 && endIndex >= 0 &&
+        startIndex < markers.size() && endIndex < markers.size()) {
+
+        loopStartIndex = startIndex;
+        loopEndIndex = endIndex;
+        isLoopingBetweenMarkers = true;
+
+        DBG("Loop set between markers: " +
+            markers[startIndex].name + " and " + markers[endIndex].name);
+    }
+}
+
+void PlayerAudio::clearLoop()
+{
+    isLoopingBetweenMarkers = false;
+    loopStartIndex = loopEndIndex = -1;
+}
+//==================================//
+
 juce::String PlayerAudio::getName() {
     return nameText;
 }

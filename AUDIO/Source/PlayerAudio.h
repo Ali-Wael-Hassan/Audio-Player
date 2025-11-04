@@ -48,10 +48,18 @@ public:
     bool MarkerBSet()const;
     double getMarkerA();
     double getMarkerB();
-
+    //Task 4
     void toggleLooping();
     bool isLooping() const;
+    //task 14
+   
+    void addMarker(const juce::String& name, double position);
+    void removeMarkerr(int index);
+    void goToMarker(int index);
+    void setLoopBetweenMarkers(int startIndex, int endIndex);
+    void clearLoop();
 
+    //====================================================//
     juce::String getName();
     juce::String getTitle();
     juce::String getDuration();
@@ -89,5 +97,17 @@ private:
     bool loopingAB = false;
     bool markerASet = false;
     bool markerBSet = false;
+
+    //Task 14 
+    struct Marker {
+        juce::String name;
+        double position; // seconds
+    };
+
+    std::vector<Marker> markers;
+    bool isLoopingBetweenMarkers = false;
+    int loopStartIndex = -1;
+    int loopEndIndex = -1;
+
 
 };
