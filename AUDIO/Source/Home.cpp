@@ -172,6 +172,11 @@ Home::Home(const std::string& themeColor, const std::string& language, PlayerGUI
 	addAndMakeVisible(*GUI);
 	GUI->setVisible(false);
 
+	// Listeners
+	libraryPage->setListener(this);
+	favoritePage->setListener(this);
+	listPage->setListener(this);
+
 
 	// Load Data
 	juce::File f("List.txt");
@@ -421,6 +426,29 @@ void Home::paintModalDimmer(juce::Graphics& g, const std::map<std::string, juce:
 		g.setColour(settingsColour);
 		g.fillRect(backgroundDimmerArea);
 	}
+}
+
+// Listeners
+void Home::loadSong(juce::String source) {
+	GUI->loadSong(source);
+	if (libraryPage) libraryPage->setVisible(false);
+
+	if (favoritePage) favoritePage->setVisible(false);
+
+	if (GUI) GUI->setVisible(true);
+
+	if (listPage) listPage->setVisible(false);
+
+	tempSuggest.setVisible(false);
+	recent.setVisible(false);
+	tempAudio1.setVisible(false);
+	tempAudio2.setVisible(false);
+	tempAudio3.setVisible(false);
+	tempAudio4.setVisible(false);
+	tempAudio5.setVisible(false);
+
+	resized();
+	repaint();
 }
 
 // Theme Update

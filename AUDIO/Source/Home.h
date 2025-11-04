@@ -204,8 +204,9 @@ using SongLibraryMap = std::unordered_map<std::string, SongData>;
 // Main Class with required Inheritance
 class Home : public juce::Component,
 	public juce::Button::Listener,
-	SettingsPage::Listener,
-	public juce::TextEditor::Listener
+	public SettingsPage::Listener,
+	public juce::TextEditor::Listener,
+	public LibraryPage::Listener
 {
 private:
 	// Theme Colors shortcut
@@ -291,6 +292,8 @@ private:
 	// Painting
 	void paintBackgroundGradients(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
 	void paintModalDimmer(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
+
+	void loadSong(juce::String source) override;
 
 public:
 	// Constructor

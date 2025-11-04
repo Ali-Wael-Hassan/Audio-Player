@@ -1,5 +1,5 @@
 #include "LibraryPage.h"
-#include <fstream> // For saving files
+#include <fstream>
 
 //==============================================================================
 // STATIC MEMBER INITIALIZATION
@@ -134,7 +134,11 @@ void SongListModel::listBoxItemClicked(int row, const juce::MouseEvent& e)
 	}
 	else
 	{
-
+		if (row >= 0 && row < songList.size())
+		{
+			if (songList[row].url.isNotEmpty()) ownerPage.ClickedSong(songList[row].url);
+			else ownerPage.ClickedSong(songList[row].filePath.getFullPathName());
+		}
 	}
 }
 
@@ -259,8 +263,10 @@ LibraryPage::LibraryPage(const std::string& themeColor, const std::string& langu
 	: currentTheme(themeColor), currentLanguage(language), songFile(songFile), playlistFile(playlistFile)
 {
 	// Load data from files
-	loadSongDataFromFile();
-	loadPlaylistDataFromFile();
+	if (!this->songFile.isEmpty())
+		loadSongDataFromFile();
+	if (!this->playlistFile.isEmpty())
+		loadPlaylistDataFromFile();
 
 	// Setup Song List
 	songsHeader.setFont(juce::Font(24.0f, juce::Font::bold));
@@ -574,6 +580,10 @@ void LibraryPage::removeSongfromFavorite()
 // Reads song data from List.txt (Title | Artist | SourcePath/URL | ThumbnailSource | Duration | isFavorite)
 void LibraryPage::loadSongDataFromFile()
 {
+	if (this->songFile.isEmpty()) {
+		DBG("Error: songFilePath is empty!");
+		return;
+	}
 	songs.clear();
 	juce::File libraryFile(this->songFile);
 

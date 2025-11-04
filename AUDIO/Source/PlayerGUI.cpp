@@ -155,38 +155,68 @@ void PlayerGUI::initializeControls()
 		};
 
 	addAndMakeVisible(positionSlider);
-
-	 control->setSignalListener(this); 
+	if (control)
+		control->setSignalListener(this); 
 
 	setSize(1400, 600);//حجم الشاشه 
 }
 
-PlayerGUI::PlayerGUI()
-	: control(nullptr),
-	thumbnail(512, defaultFormatManager, thumbnailCache),
-	showPlaylistPanel(false), isUserDraggingPosition(false),
-	stoped(true), muted(false), lastVal(0.5), currentPlaylistIndex(-1)
-{
-	defaultFormatManager.registerBasicFormats();
-	initializeControls();
-	thumbnail.addChangeListener(this);
-	startTimerHz(30);
-}
-
-PlayerGUI::PlayerGUI(PlayerAudio& control)
+PlayerGUI::PlayerGUI(PlayerAudio& control, juce::String url = "", juce::String fileName = "")
 	: control(&control),
-	thumbnail(512, control.getFormatManager(), thumbnailCache),
+	thumbnail(512, this->control->getFormatManager(), this->control->getThumbnailCache()),
 	showPlaylistPanel(false), isUserDraggingPosition(false),
 	stoped(true), muted(false), lastVal(0.5), currentPlaylistIndex(-1)
 {
 	initializeControls();
 	thumbnail.addChangeListener(this);
 	startTimerHz(30);
+
+	if (url.isNotEmpty() && (url.startsWithIgnoreCase("http://") || url.startsWithIgnoreCase("https://"))) {
+		this->control->startNewFromURL(juce::URL(url));
+		positionSlider.setRange(0.0, this->control->getLength(), 0.01);
+		positionSlider.setValue(0.0, juce::dontSendNotification);
+
+		if (this->control->audioExist()) {
+			playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
+			stoped = false;
+		}
+	}
+	if (fileName.isNotEmpty()) {
+		this->control->startNewFromFile(juce::File(fileName));
+		positionSlider.setRange(0.0, this->control->getLength(), 0.01);
+		positionSlider.setValue(0.0, juce::dontSendNotification);
+
+		if (this->control->audioExist()) {
+			playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
+			stoped = false;
+		}
+	}
 
 	control.setSignalListener(this);
 
 	refreshPlaylist();
 }
+
+void PlayerGUI::loadSong(juce::String source) {
+	if (source.isNotEmpty() && (source.startsWithIgnoreCase("http://") || source.startsWithIgnoreCase("https://"))) {
+		source = control->startNewFromURL(juce::URL(source));
+	}
+
+	if (source.isNotEmpty()) {
+		auto file = juce::File(source);
+		control->startNewFromFile(file);
+		thumbnail.setSource(new juce::FileInputSource(file));
+
+		positionSlider.setRange(0.0, control->getLength(), 0.01);
+		positionSlider.setValue(0.0, juce::dontSendNotification);
+
+		if (control->audioExist()) {
+			playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
+			stoped = false;
+		}
+	}
+}
+
 //يلا نرسم يلاااااااااااااا😍😍😍
 void PlayerGUI::paint(juce::Graphics& g) {
 	// Modern gradient background
@@ -219,11 +249,12 @@ void PlayerGUI::paint(juce::Graphics& g) {
 	if (thumbnail.getTotalLength() > 0.0)
 	{
 		g.setColour(juce::Colour::fromRGB(100, 200, 255));
-		thumbnail.drawChannels(g,		//بترسم الموجة
-			waveformArea.reduced(10),// تبعد عن الحواف 10 بكسل
+		thumbnail.drawChannel(g,
+			waveformArea.reduced(10),
 			0.0,
 			thumbnail.getTotalLength(),
-			1.0f);//مستوى التكبير
+			0,
+			1.0f);
 	}
 	else
 	{
@@ -601,11 +632,8 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 			[this](const juce::FileChooser& fc) {
 				auto file = fc.getResult();
 				if (file.existsAsFile()) {
-					control->startNew(file);
+					control->startNewFromFile(file);
 					thumbnail.setSource(new juce::FileInputSource(file));
-					name.setText(control->getName(), juce::dontSendNotification);
-					title.setText(control->getTitle(), juce::dontSendNotification);
-					duration.setText(control->getDuration(), juce::dontSendNotification);
 
 					positionSlider.setRange(0.0, control->getLength(), 0.01);
 					positionSlider.setValue(0.0, juce::dontSendNotification);
@@ -725,6 +753,15 @@ void PlayerGUI::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
 	if (source == &thumbnail)
 	{
+		double newLength = control->getLength();
+
+		if (newLength > 0.0 && newLength != positionSlider.getMaximum())
+		{
+			positionSlider.setRange(0.0, newLength, 0.01);
+			positionSlider.setValue(0.0, juce::dontSendNotification);
+
+			loadMetaData();
+		}
 		repaint(waveformArea);
 	}
 }
@@ -778,9 +815,19 @@ void PlayerGUI::playBackFinished()
 	stoped = true;
 }
 
-void PlayerGUI::handleAsyncUpdate()
+void PlayerGUI::loadMetaData()
 {
-	playBackFinished();
+	name.setText(control->getName(), juce::dontSendNotification);
+	title.setText(control->getTitle(), juce::dontSendNotification);
+	duration.setText(control->getDuration(), juce::dontSendNotification);
+}
+
+void PlayerGUI::loadWave(juce::File file)
+{
+	thumbnail.clear();
+	thumbnail.setSource(new juce::FileInputSource(file));
+	repaint(waveformArea);
+	repaint();
 }
 
 void PlayerGUI::refreshPlaylist()
@@ -803,11 +850,9 @@ void PlayerGUI::playTrackFromPlaylist(int index)
 
 	if (file.existsAsFile())
 	{
-		control->startNew(file);
+		control->startNewFromFile(file);
 		thumbnail.setSource(new juce::FileInputSource(file));
-		name.setText(control->getName(), juce::dontSendNotification);
-		title.setText(control->getTitle(), juce::dontSendNotification);
-		duration.setText(control->getDuration(), juce::dontSendNotification);
+		loadMetaData();
 
 		currentPlaylistIndex = index;
 		currentPlaylistKey = songs[index].first;

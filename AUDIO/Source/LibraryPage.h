@@ -73,6 +73,12 @@ public:
 class LibraryPage : public juce::Component
 {
 public:
+	class Listener {
+		public:
+			~Listener() = default;
+			virtual void loadSong(juce::String source) = 0;
+	};
+
 	using ThemeColors = std::map<std::string, juce::Colour>;
 	static const std::map<std::string, ThemeColors> ThemeColorMap;
 
@@ -87,12 +93,17 @@ public:
 
 	void toggleFavoriteStatus(int row);
 
+	void setListener(Listener* l) { listen = l; }
+
+	void ClickedSong(juce::String source) { listen->loadSong(source); }
+
 	void loadSongDataFromFile();
 	void loadPlaylistDataFromFile();
 	void saveSongDataToFile();
 	void removeSongfromFavorite();
 
 private:
+	Listener* listen;
 	std::string currentTheme;
 	std::string currentLanguage;
 

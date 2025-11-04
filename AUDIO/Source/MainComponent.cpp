@@ -3,7 +3,7 @@
 MainComponent::MainComponent()
 {
     audio = new PlayerAudio();
-    GUI = new PlayerGUI(*audio);
+    GUI = new PlayerGUI(*audio, "", "");
 
     home = new Home("Dark", "English", GUI, audio);
 

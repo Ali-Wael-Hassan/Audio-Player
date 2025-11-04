@@ -1,6 +1,8 @@
 #include "PlayerAudio.h"
 
-PlayerAudio::PlayerAudio() : playlist("x.txt") {
+PlayerAudio::PlayerAudio()
+    : playlist("x.txt")
+{
     formatManager.registerBasicFormats();
     resamplingSource = std::make_unique<juce::ResamplingAudioSource>(&transportSource, false, 2);
 }
@@ -15,6 +17,7 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 }
 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
+    if (readerSource == nullptr) return;
     resamplingSource->getNextAudioBlock(bufferToFill);
 
     if (loopActive && transportSource.hasStreamFinished()) {
@@ -65,7 +68,7 @@ void PlayerAudio::setGain(float val) {
     transportSource.setGain(val);
 }
 
-void PlayerAudio::startNew(juce::File file) {
+void PlayerAudio::startNewFromFile(juce::File file) {
     if (auto* reader = formatManager.createReaderFor(file)) {
         reset();
 
@@ -128,7 +131,61 @@ void PlayerAudio::startNew(juce::File file) {
 
         durationText = (time.isNotEmpty() ? time : "0:00");
         transportSource.start();
+        
+        listen->loadMetaData();
+        listen->loadWave(file);
     }
+}
+
+juce::String PlayerAudio::startNewFromURL(juce::URL url)
+{
+    DBG("Attempting to download audio from: " << url.toString(false));
+
+    juce::String filename = url.getFileName();
+    if (filename.isEmpty())
+        filename = "audio_download.mp3";
+
+    juce::File audioDir = juce::File::getSpecialLocation(juce::File::userMusicDirectory)
+        .getChildFile("MyAudioPlayer");
+    audioDir.createDirectory();
+
+    juce::File audioFile = audioDir.getChildFile(filename);
+
+    if (audioFile.existsAsFile())
+    {
+        DBG("File already exists locally: " << audioFile.getFullPathName());
+        startNewFromFile(audioFile);
+        return "";
+    }
+
+    std::unique_ptr<juce::InputStream> input(url.createInputStream(
+        juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+        .withConnectionTimeoutMs(15000)
+        .withNumRedirectsToFollow(5)
+    ));
+
+    if (input == nullptr)
+    {
+        DBG("Failed to create input stream for URL: " << url.toString(false));
+        return "";
+    }
+
+    DBG("Downloading to: " << audioFile.getFullPathName());
+
+    std::unique_ptr<juce::FileOutputStream> output(audioFile.createOutputStream());
+    if (output == nullptr || !output->openedOk())
+    {
+        DBG("Failed to open output stream for: " << audioFile.getFullPathName());
+        return "";
+    }
+
+    output->writeFromInputStream(*input, -1);
+    output->flush();
+    output.reset();
+
+    DBG("Download complete. File size: " << audioFile.getSize() << " bytes");
+
+    return  audioFile.getFullPathName();
 }
 
 void PlayerAudio::setPosition(double pos) {

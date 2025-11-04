@@ -15,8 +15,7 @@ class PlayerGUI :
 	public juce::Component,
 	public juce::Button::Listener,	//لما حد يدوس أزرار
 	public juce::Slider::Listener, //لما حد يحرك السلايدرز
-	public PlayerAudioSignal, // ياخد إشارات من الصوت
-	public juce::AsyncUpdater,// يعمل تحديثات
+	public PlayerAudio::PlayerAudioSignal, // ياخد إشارات من الصوت
 	public juce::Timer, //  عشان يعمل حاجات كل فترة زي تحديث الوقت
 	// waveform و كمان مهم فى 
 	public juce::ChangeListener// تغيرات
@@ -242,8 +241,6 @@ private:
 	void playTrackFromPlaylist(int index);
 
 	// Waveform components
-	juce::AudioFormatManager defaultFormatManager;
-	juce::AudioThumbnailCache thumbnailCache{ 5 };
 	juce::AudioThumbnail thumbnail;
 	//الاشكال و المستطيلات 
 	juce::Rectangle<int> waveformArea;
@@ -252,12 +249,13 @@ private:
 	juce::Rectangle<int> headerBoxArea;
 
 public:
-	PlayerGUI();
-	PlayerGUI(PlayerAudio& control);
+	PlayerGUI(PlayerAudio& control, juce::String url, juce::String fileName);
 	~PlayerGUI()
 	{
 		// Clean up LookAndFeel (مفيش nav buttons دلوقتي)
 	}
+
+	void loadSong(juce::String source);
 
 	void paint(juce::Graphics& g) override; //بترسم كل حاجة على الشاشة
 	void resized() override;//الجحم و التوزيعه 
@@ -265,10 +263,11 @@ public:
 	void sliderValueChanged(juce::Slider* slider) override;// سلايدر
 	void sliderDragStarted(juce::Slider* slider) override;// سلايدر
 	void sliderDragEnded(juce::Slider* slider) override;// سلايدر
-	void playBackFinished() override;//بتتنفذ لما الأغنية تخلص
+	void playBackFinished() override;//بتتنفذ لما الأغنية 
+	void loadMetaData() override;
+	void loadWave(juce::File file) override;
 	void timerCallback() override;// بتتنفذ كل فترة معينة (زي تحديث وقت الأغنية كل ثانية
 
-	void handleAsyncUpdate() override;
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;//بتتنفذ لما يحصل تغيير في الصوت (زي لما يتحمل ملف جديد)
 	// تحريك ال wave 
 	void mouseDown(const juce::MouseEvent& event) override;

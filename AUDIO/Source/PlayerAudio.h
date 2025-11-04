@@ -9,28 +9,16 @@
 #include "PlaylistManager.h"
 
 class PlayerAudio : public juce::AudioAppComponent {
-private:
-    PlayerAudioSignal* listen = nullptr;
-    std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
-    PlaylistManager playlist;
-
-    juce::AudioFormatManager formatManager;
-    std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
-    juce::AudioTransportSource transportSource;
-
-    juce::String titleText = "No Track Loaded";
-    juce::String nameText = "Unknown";
-    juce::String durationText = "00:00";
-    bool loopActive = false;
-
-    //Task 10
-    double markerA = -1.0;
-    double markerB = -1.0;
-    bool loopingAB = false;
-    bool markerASet = false;
-    bool markerBSet = false;
-
 public:
+    class PlayerAudioSignal
+    {
+    public:
+        virtual ~PlayerAudioSignal() = default;
+        virtual void playBackFinished() = 0;
+        virtual void loadMetaData() = 0;
+        virtual void loadWave(juce::File file) = 0;
+    };
+
     PlayerAudio();
     ~PlayerAudio();
 
@@ -44,7 +32,8 @@ public:
     void restart();
     void reset();
     void setGain(float val);
-    void startNew(juce::File file);
+    void startNewFromFile(juce::File file);
+    juce::String startNewFromURL(juce::URL url);
     void setPosition(double pos);
     void jumpTime(double seconds);
     double getLength();
@@ -68,12 +57,37 @@ public:
     juce::String getDuration();
 
     PlaylistManager& getPlaylistManager();
+
     void setSignalListener(PlayerAudioSignal* l);
     bool reachEnd();
 
     juce::AudioFormatManager& getFormatManager() { return formatManager; }
+    juce::AudioThumbnailCache& getThumbnailCache() { return thumbnailCache; }
 
     double getCurrentPosition() const { return transportSource.getCurrentPosition(); }
 
     bool isPlaying() const { return transportSource.isPlaying(); }
+
+private:
+    PlayerAudioSignal* listen = nullptr;
+    std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
+    PlaylistManager playlist;
+
+    juce::AudioFormatManager formatManager;
+    std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
+    juce::AudioTransportSource transportSource;
+    juce::AudioThumbnailCache thumbnailCache{ 5 };
+
+    juce::String titleText = "No Track Loaded";
+    juce::String nameText = "Unknown";
+    juce::String durationText = "00:00";
+    bool loopActive = false;
+
+    //Task 10
+    double markerA = -1.0;
+    double markerB = -1.0;
+    bool loopingAB = false;
+    bool markerASet = false;
+    bool markerBSet = false;
+
 };
