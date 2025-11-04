@@ -157,6 +157,20 @@ void PlayerGUI::initializeControls()
 	addAndMakeVisible(positionSlider);
 	if (control)
 		control->setSignalListener(this); 
+	//task 14//////////////////////////////////
+	addAndMakeVisible(markerActionBox);
+	addAndMakeVisible(markerSelectBox);
+	addAndMakeVisible(addMarkerButton);
+	addAndMakeVisible(applyMarkerActionButton);
+
+	markerActionBox.addItem("Loop between two markers", 1);
+	markerActionBox.addItem("Go to marker", 2);
+	markerActionBox.addItem("Remove marker", 3);
+	markerActionBox.setSelectedId(1);
+
+	addMarkerButton.addListener(this);
+	applyMarkerActionButton.addListener(this);
+	//////////////////////////////////////////
 
 	setSize(1400, 600);//حجم الشاشه 
 }
@@ -427,7 +441,7 @@ void PlayerGUI::resized() {
 
 	// Control buttons area
 	controlButtonsArea = bounds.removeFromBottom(65).reduced(120, 5);
-
+	
 	// Info labels (Metadata)
 	int infoHeight = 50;
 	int infoMargin = 5;
@@ -538,6 +552,14 @@ void PlayerGUI::resized() {
 
 	repeatButton.setBounds(x, y, buttonWidth, buttonHeight);
 
+	//==================the combo box task 14=======================================
+	int startY = 250;
+	markerActionBox.setBounds(20, startY, 200, 25);
+	markerSelectBox.setBounds(230, startY, 120, 25);
+	addMarkerButton.setBounds(360, startY, 100, 25);
+	applyMarkerActionButton.setBounds(470, startY, 80, 25);
+	//=====================================================//
+
 	// Hide unused buttons
 	go_to_startButton.setBounds(0, 0, 0, 0);
 	speedButton.setBounds(0, 0, 0, 0);
@@ -618,7 +640,33 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 		
 	}
 
+	//task 14
+	else if (button == &applyMarkerActionButton)
+	{
+		int selectedAction = markerActionBox.getSelectedId();
+		int selectedMarker = markerSelectBox.getSelectedId();
 
+		if (selectedAction == 1)
+			DBG("Loop between two markers logic will go here");
+		else if (selectedAction == 2)
+			DBG("Go to selected marker");
+		else if (selectedAction == 3)
+			DBG("Remove selected marker");
+	}
+
+	else if (button == &addMarkerButton)
+	{
+		// Just for now, we’ll fake the position (e.g., 0.0) until we handle real playback positions later
+		double currentPos = control->getCurrentPosition();
+
+		juce::String markerName = "Marker " + juce::String(markers.size() + 1);
+
+		markers.push_back({ markerName, currentPos });
+		markerSelectBox.addItem(markerName, markers.size());
+
+		DBG("Added " + markerName);
+	}
+	//==================================================//
 	// Audio control buttons
 	if (button == &loadButton) {
 		fileChooser = std::make_unique<juce::FileChooser>(

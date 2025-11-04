@@ -21,6 +21,20 @@ class PlayerGUI :
 	public juce::ChangeListener// تغيرات
 {
 private:
+	//task 14 
+
+	struct Marker {
+		juce::String name;
+		double position; // will be handled later
+	};
+	std::vector<Marker> markers;
+	/////////////////////////////////
+
+	juce::ComboBox markerActionBox;
+	juce::ComboBox markerSelectBox;
+	juce::TextButton addMarkerButton{ "Add Marker" };
+	juce::TextButton applyMarkerActionButton{ "Apply" };
+
 	// Custom LookAndFeel
 	CustomButtonLookAndFeel customLookAndFeel;
 
@@ -41,13 +55,14 @@ private:
 	juce::TextButton forwardButton;
 	juce::TextButton backwardButton;
 	juce::TextButton markerButton{ "Flag Marker A/B:Not Set" };
+	juce::TextButton markersButton{ "Add a Marker" };
 	juce::TextButton settingsButton;
 
 
 	std::vector<juce::TextButton*> buttons = {
 		&loadButton, &restartButton, &stopButton, &playButton,
 		&muteButton, &go_to_startButton, &go_to_endButton,
-		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton, & markerButton
+		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton, & markerButton, & markersButton
 	};
 
 	// Playlist Panel Controls //زوات حاجات بس فى حاجات منهم مش شغاله 

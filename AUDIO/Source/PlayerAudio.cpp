@@ -72,7 +72,7 @@ void PlayerAudio::startNewFromFile(juce::File file) {
     if (auto* reader = formatManager.createReaderFor(file)) {
         reset();
 
-        TagLib::FileRef openFile(file.getFullPathName().toRawUTF8());
+       // TagLib::FileRef openFile(file.getFullPathName().toRawUTF8());
 
         juce::String artistText = "Unknown Artist";
         juce::String titleTempText = file.getFileNameWithoutExtension();
@@ -96,7 +96,7 @@ void PlayerAudio::startNewFromFile(juce::File file) {
             }
         }
 
-        if (!openFile.isNull() && openFile.tag()) {
+       /* if (!openFile.isNull() && openFile.tag()) {
             TagLib::Tag* tagObject = openFile.tag();
 
             juce::String artist = juce::String(tagObject->artist().toCString(true));
@@ -108,7 +108,7 @@ void PlayerAudio::startNewFromFile(juce::File file) {
             if (title.isNotEmpty()) {
                 titleTempText = title.trim();
             }
-        }
+        }*/
 
         nameText = artistText;
         titleText = titleTempText;

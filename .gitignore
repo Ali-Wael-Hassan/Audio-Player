@@ -4,6 +4,7 @@
 # Ignore build and generated files
 Builds/
 JuceLibraryCode/
+Task11_/
 *.suo
 *.user
 *.userosscache
@@ -33,6 +34,8 @@ JuceLibraryCode/
 *.vs/
 *.vscode/
 *.idea/
+*.txt
+*.png
 .DS_Store
 
 # === OS Files ===
