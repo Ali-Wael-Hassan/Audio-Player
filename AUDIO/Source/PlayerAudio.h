@@ -51,6 +51,7 @@ public:
     //Task 4
     void toggleLooping();
     bool isLooping() const;
+
     //task 14
    
     void addMarker(const juce::String& name, double position);

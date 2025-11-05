@@ -664,30 +664,51 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 			int selectedAction = markerActionBox.getSelectedId();
 			int selectedMarker = markerSelectBox.getSelectedId() - 1; // ComboBox IDs start from 1
 
-				if (selectedAction == 1) // Loop between two markers
+			if (selectedAction == 1) // Loop between two markers
+			{
+				if (markers.size() >= 2)
 				{
-					if (markers.size() >= 2)
-					{
-						control->setLoopBetweenMarkers(0, markers.size() - 1);
-						DBG("Looping between " + markers.front().name + " and " + markers.back().name);
-					}
+					int firstIndex = 0;
+					int secondIndex = markers.size() - 1;
+
+					double markerA = markers[firstIndex].position;
+					double markerB = markers[secondIndex].position;
+
+					control->setMarkers(markerA);
+					control->setMarkers(markerB);
+
+					DBG("Looping between " + markers[firstIndex].name + " and " + markers[secondIndex].name);
 				}
-				else if (selectedAction == 2) // Go to marker
+				else
 				{
+					DBG("Need at least two markers to loop.");
+				}
+			}
+			else if (selectedAction == 2) // Go to marker
+			{
 					if (selectedMarker >= 0 && selectedMarker < markers.size())
 					{
 						control->goToMarker(selectedMarker);
 					}
-				}
-				else if (selectedAction == 3) // Remove marker 
+			}
+			else if (selectedAction == 3) // ❌ Remove marker
+			{
+				if (selectedMarker >= 0 && selectedMarker < markers.size())
 				{
-					if (selectedMarker >= 0 && selectedMarker < markers.size())
+					control->removeMarkerr(selectedMarker);
+					markers.erase(markers.begin() + selectedMarker);
+
+					// ✅ Renumber after removal
+					for (int i = 0; i < markers.size(); ++i)
 					{
-						control->removeMarkerr(selectedMarker);
-						markers.erase(markers.begin() + selectedMarker);
-						repaint();
+						markers[i].name = "Marker " + juce::String(i + 1);
+						markerSelectBox.changeItemText(i + 1, markers[i].name);
 					}
+
+					repaint();
+					DBG("Removed marker and renumbered others");
 				}
+			}
 		}
 
 		else if (button == &addMarkerButton)
@@ -981,6 +1002,7 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 						juce::PopupMenu menu;
 						menu.addItem(1, "Go to Marker");
 						menu.addItem(2, "Remove Marker");
+						menu.addItem(3, "Loop between this and another marker");
 						// (Loop between markers can be added later)
 
 						// ✅ Modern JUCE: use async callback instead of .show()
@@ -998,6 +1020,34 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 									markers.erase(markers.begin() + i);
 									repaint();
 								}
+								else if (result == 3)
+								{
+									// Ask user to pick the second marker to loop with
+									juce::PopupMenu subMenu;
+									for (int j = 0; j < markers.size(); ++j)
+									{
+										if (j != i)
+											subMenu.addItem(j + 1, "Loop with " + markers[j].name);
+									}
+
+									subMenu.showMenuAsync(
+										juce::PopupMenu::Options().withTargetComponent(this),
+										[this, i](int chosen)
+										{
+											if (chosen > 0 && chosen - 1 < markers.size())
+											{
+												int j = chosen - 1;
+												control->setLoopBetweenMarkers(
+													std::min(i, j),
+													std::max(i, j)
+												);
+
+												DBG("Looping between " + markers[std::min(i, j)].name +
+													" and " + markers[std::max(i, j)].name);
+											}
+										});
+								}
+
 							});
 
 						return; // stop further processing after right-click
@@ -1010,7 +1060,9 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 			if (event.mods.isRightButtonDown())
 			{
 				double clickX = event.getMouseDownX();
-				double position = (clickX / (double)waveformArea.getWidth()) * thumbnail.getTotalLength();
+				double relativeX = juce::jlimit(0.0, (double)waveformArea.getWidth(), clickX - waveformArea.getX());
+				double position = (relativeX / (double)waveformArea.getWidth()) * thumbnail.getTotalLength();
+
 
 				juce::String markerName = "Marker " + juce::String(markers.size() + 1);
 				control->addMarker(markerName, position);
