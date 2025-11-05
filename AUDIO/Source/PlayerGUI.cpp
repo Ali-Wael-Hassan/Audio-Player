@@ -1019,8 +1019,19 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 								{
 									control->removeMarkerr(i);
 									markers.erase(markers.begin() + i);
+
+									// ✅ Renumber all markers
+									for (int k = 0; k < markers.size(); ++k)
+										markers[k].name = "Marker " + juce::String(k + 1);
+
+									// ✅ Update ComboBox
+									markerSelectBox.clear();
+									for (int k = 0; k < markers.size(); ++k)
+										markerSelectBox.addItem(markers[k].name, k + 1);
+
 									repaint();
 								}
+
 								else if (result == 3)
 								{
 									// Ask user to pick the second marker to loop with
