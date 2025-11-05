@@ -269,6 +269,17 @@ void PlayerGUI::paint(juce::Graphics& g) {
 			thumbnail.getTotalLength(),
 			0,
 			1.0f);
+		
+		// 🔹 Draw markers on top of waveform
+		for (auto& m : markers)
+		{
+			float x = (m.position / thumbnail.getTotalLength()) * waveformArea.getWidth() + waveformArea.getX();
+
+			g.setColour(juce::Colours::aqua);
+			g.drawLine(x, waveformArea.getY(), x, waveformArea.getBottom(), 2.0f);
+			g.setColour(juce::Colours::white);
+			g.drawText(m.name, x + 3, waveformArea.getY() + 5, 60, 15, juce::Justification::left);
+		}
 	}
 	else
 	{
@@ -641,59 +652,58 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 	}
 
 	//task 14
-	else if (button == &applyMarkerActionButton)
-	{
-		int selectedAction = markerActionBox.getSelectedId();
-		int selectedMarker = markerSelectBox.getSelectedId() - 1; // ComboBox IDs start from 1
-
-		if (selectedAction == 1) // Loop between two markers
+	
+		else if (button == &applyMarkerActionButton)
 		{
-			if (markers.size() >= 2)
+			int selectedAction = markerActionBox.getSelectedId();
+			int selectedMarker = markerSelectBox.getSelectedId() - 1; // ComboBox IDs start from 1
+
+				if (selectedAction == 1) // Loop between two markers
+				{
+					if (markers.size() >= 2)
+					{
+						control->setLoopBetweenMarkers(0, markers.size() - 1);
+						DBG("Looping between " + markers.front().name + " and " + markers.back().name);
+					}
+				}
+				else if (selectedAction == 2) // Go to marker
+				{
+					if (selectedMarker >= 0 && selectedMarker < markers.size())
+					{
+						control->goToMarker(selectedMarker);
+					}
+				}
+				else if (selectedAction == 3) // Remove marker 
+				{
+					if (selectedMarker >= 0 && selectedMarker < markers.size())
+					{
+						control->removeMarkerr(selectedMarker);
+						markers.erase(markers.begin() + selectedMarker);
+						repaint();
+					}
+				}
+		}
+
+		else if (button == &addMarkerButton)
+		{
+			if (control != nullptr)
 			{
-				// Example: loop between the first and last marker for now
-				control->setLoopBetweenMarkers(0, markers.size() - 1);
-				DBG("Looping between " + markers.front().name + " and " + markers.back().name);
+				double position = control->getAudioPosition();
+				juce::String markerName = "Marker " + juce::String(markers.size() + 1);
+
+				// Add to internal list
+				markers.push_back({ markerName, position });
+				control->addMarker(markerName, position);
+				markerSelectBox.addItem(markerName, markers.size());
 			}
 		}
-		else if (selectedAction == 2) // Go to marker
+
+		else if (button == &markerButton)
 		{
-			if (selectedMarker >= 0 && selectedMarker < markers.size())
-			{
-				control->goToMarker(selectedMarker);
-				DBG("Jumped to " + markers[selectedMarker].name);
-			}
+			addMarkerMode = !addMarkerMode;
 		}
-		else if (selectedAction == 3) // Remove marker
-		{
-			if (selectedMarker >= 0 && selectedMarker < markers.size())
-			{
-				control->removeMarkerr(selectedMarker);
-				//markerSelectBox.removeItem(selectedMarker + 1);
-				markers.erase(markers.begin() + selectedMarker);
-				DBG("Removed " + juce::String(selectedMarker + 1));
-			}
-		}
-	}
+	
 
-	else if (button == &addMarkerButton)
-	{
-		if (control != nullptr)
-		{
-			double position = control->getAudioPosition(); // Real position
-			juce::String markerName = "Marker " + juce::String(markers.size() + 1);
-
-			markers.push_back({ markerName, position });
-			markerSelectBox.addItem(markerName, markers.size());
-
-			control->addMarker(markerName,position); // 🔗 Sync with PlayerAudio
-
-			DBG("Added " + markerName);
-		}
-	}
-	else if (button == &markerButton)
-	{
-		addMarkerMode = !addMarkerMode;
-	}
 	//==================================================//
 	// Audio control buttons
 	if (button == &loadButton) {
