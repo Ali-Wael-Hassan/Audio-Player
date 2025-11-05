@@ -163,6 +163,12 @@ void PlayerGUI::initializeControls()
 	addAndMakeVisible(addMarkerButton);
 	addAndMakeVisible(applyMarkerActionButton);
 
+	//!Start Visible
+	markerActionBox.setVisible(false);
+	markerSelectBox.setVisible(false);
+	addMarkerButton.setVisible(false);
+	applyMarkerActionButton.setVisible(false);
+
 	markerActionBox.addItem("Loop between two markers", 1);
 	markerActionBox.addItem("Go to marker", 2);
 	markerActionBox.addItem("Remove marker", 3);
@@ -963,14 +969,66 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 
 		if (clickableWaveformArea.contains(event.getPosition()))
 		{
-			//to use it for putting a marker :
+			// ====== Check if user right-clicked on a marker ======
+			for (int i = 0; i < markers.size(); ++i)
+			{
+				float markerX = (markers[i].position / thumbnail.getTotalLength()) * waveformArea.getWidth() + waveformArea.getX();
+
+				if (std::abs(event.x - markerX) < 6) // 6px tolerance
+				{
+					if (event.mods.isRightButtonDown())
+					{
+						juce::PopupMenu menu;
+						menu.addItem(1, "Go to Marker");
+						menu.addItem(2, "Remove Marker");
+						// (Loop between markers can be added later)
+
+						// ✅ Modern JUCE: use async callback instead of .show()
+						menu.showMenuAsync(
+							juce::PopupMenu::Options().withTargetScreenArea({ event.getScreenPosition(), {1, 1} }),
+							[this, i](int result)
+							{
+								if (result == 1)
+								{
+									control->goToMarker(i);
+								}
+								else if (result == 2)
+								{
+									control->removeMarkerr(i);
+									markers.erase(markers.begin() + i);
+									repaint();
+								}
+							});
+
+						return; // stop further processing after right-click
+
+					}
+				}
+			}
+			// ===================================================== //
+			 // ====== Right-click (empty space) → Add new marker ======
+			if (event.mods.isRightButtonDown())
+			{
+				double clickX = event.getMouseDownX();
+				double position = (clickX / (double)waveformArea.getWidth()) * thumbnail.getTotalLength();
+
+				juce::String markerName = "Marker " + juce::String(markers.size() + 1);
+				control->addMarker(markerName, position);
+				markers.push_back({ markerName, position });
+
+				repaint();
+				DBG("Added " + markerName + " at " + juce::String(position, 2) + " sec");
+				return;
+			}
+			// ======================================================= //
+
+			// ====== Add marker mode (left-click) ======
 			if (addMarkerMode)
 			{
 				double clickX = event.position.x;
 				double relativeX = juce::jlimit(0.0, (double)clickableWaveformArea.getWidth(), clickX - clickableWaveformArea.getX());
 				double timeInSeconds = (relativeX / clickableWaveformArea.getWidth()) * thumbnail.getTotalLength();
 
-				// Add marker both visually & logically
 				juce::String markerName = "Marker " + juce::String(markers.size() + 1);
 				control->addMarker(markerName, timeInSeconds);
 				markers.push_back({ markerName, timeInSeconds });
@@ -978,12 +1036,11 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 
 				DBG("Added " + markerName + " at " + juce::String(timeInSeconds, 2) + " seconds");
 
-				// Reset marker mode
 				addMarkerMode = false;
 				markerButton.setButtonText("Add Marker");
 
 				repaint();
-				return; // don't drag position when adding a marker
+				return; // don’t drag position when adding marker
 			}
 			//======================================//
 			isUserDraggingPosition = true;
