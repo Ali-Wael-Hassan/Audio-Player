@@ -305,16 +305,26 @@ void PlayerAudio::goToMarker(int index)
 void PlayerAudio::setLoopBetweenMarkers(int startIndex, int endIndex)
 {
     if (startIndex >= 0 && endIndex >= 0 &&
-        startIndex < markers.size() && endIndex < markers.size()) {
-
+        startIndex < markers.size() && endIndex < markers.size())
+    {
+        // Store indexes
         loopStartIndex = startIndex;
         loopEndIndex = endIndex;
         isLoopingBetweenMarkers = true;
 
-        DBG("Loop set between markers: " +
-            markers[startIndex].name + " and " + markers[endIndex].name);
+        // Update actual playback marker positions
+        markerA = markers[startIndex].position;
+        markerB = markers[endIndex].position;
+
+        if (markerB < markerA)
+            std::swap(markerA, markerB);
+
+        markerASet = true;
+        markerBSet = true;
+        loopingAB = true;
     }
 }
+
 
 void PlayerAudio::clearLoop()
 {

@@ -840,26 +840,29 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 
 void PlayerGUI::timerCallback()
 {
-	if (control != nullptr && control->isPlaying() && !isUserDraggingPosition)
+	if (control == nullptr)
+		return; 
+
+	if (control->isPlaying() && !isUserDraggingPosition)
 	{
 		double pos = control->getAudioPosition();
 		positionSlider.setValue(pos, juce::dontSendNotification);
-
 		repaint(waveformArea);
 
-		if (control->reachEnd()) {
+		if (control->reachEnd())
 			playBackFinished();
-		}
 	}
 
 	if (control->isLoopingAB() && control->MarkerASet() && control->MarkerBSet())
 	{
 		double current = control->getAudioPosition();
-		double markerB = control->getMarkerB();
-		double markerA = control->getMarkerA();
+		double markerB = control->getMarkerB() * control->getAudioLength();
+		double markerA = control->getMarkerA() * control->getAudioLength();
+		DBG("Loop check: current=" << current << " A=" << markerA << " B=" << markerB);
 
 		if (current >= markerB)
 			control->setPosition(markerA);
+		DBG("Looping back to Marker A at " << markerA);
 	}
 }
 
@@ -1020,11 +1023,11 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 									control->removeMarkerr(i);
 									markers.erase(markers.begin() + i);
 
-									// ✅ Renumber all markers
+									//  Renumber all markers
 									for (int k = 0; k < markers.size(); ++k)
 										markers[k].name = "Marker " + juce::String(k + 1);
 
-									// ✅ Update ComboBox
+									//  Update ComboBox
 									markerSelectBox.clear();
 									for (int k = 0; k < markers.size(); ++k)
 										markerSelectBox.addItem(markers[k].name, k + 1);
