@@ -34,6 +34,7 @@ private:
 	juce::ComboBox markerSelectBox;
 	juce::TextButton addMarkerButton{ "Add Marker" };
 	juce::TextButton applyMarkerActionButton{ "Apply" };
+	bool addMarkerMode = false;
 
 	// Custom LookAndFeel
 	CustomButtonLookAndFeel customLookAndFeel;

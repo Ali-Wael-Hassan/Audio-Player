@@ -644,27 +644,55 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 	else if (button == &applyMarkerActionButton)
 	{
 		int selectedAction = markerActionBox.getSelectedId();
-		int selectedMarker = markerSelectBox.getSelectedId();
+		int selectedMarker = markerSelectBox.getSelectedId() - 1; // ComboBox IDs start from 1
 
-		if (selectedAction == 1)
-			DBG("Loop between two markers logic will go here");
-		else if (selectedAction == 2)
-			DBG("Go to selected marker");
-		else if (selectedAction == 3)
-			DBG("Remove selected marker");
+		if (selectedAction == 1) // Loop between two markers
+		{
+			if (markers.size() >= 2)
+			{
+				// Example: loop between the first and last marker for now
+				control->setLoopBetweenMarkers(0, markers.size() - 1);
+				DBG("Looping between " + markers.front().name + " and " + markers.back().name);
+			}
+		}
+		else if (selectedAction == 2) // Go to marker
+		{
+			if (selectedMarker >= 0 && selectedMarker < markers.size())
+			{
+				control->goToMarker(selectedMarker);
+				DBG("Jumped to " + markers[selectedMarker].name);
+			}
+		}
+		else if (selectedAction == 3) // Remove marker
+		{
+			if (selectedMarker >= 0 && selectedMarker < markers.size())
+			{
+				control->removeMarkerr(selectedMarker);
+				//markerSelectBox.removeItem(selectedMarker + 1);
+				markers.erase(markers.begin() + selectedMarker);
+				DBG("Removed " + juce::String(selectedMarker + 1));
+			}
+		}
 	}
 
 	else if (button == &addMarkerButton)
 	{
-		// Just for now, we’ll fake the position (e.g., 0.0) until we handle real playback positions later
-		double currentPos = control->getCurrentPosition();
+		if (control != nullptr)
+		{
+			double position = control->getAudioPosition(); // Real position
+			juce::String markerName = "Marker " + juce::String(markers.size() + 1);
 
-		juce::String markerName = "Marker " + juce::String(markers.size() + 1);
+			markers.push_back({ markerName, position });
+			markerSelectBox.addItem(markerName, markers.size());
 
-		markers.push_back({ markerName, currentPos });
-		markerSelectBox.addItem(markerName, markers.size());
+			control->addMarker(markerName,position); // 🔗 Sync with PlayerAudio
 
-		DBG("Added " + markerName);
+			DBG("Added " + markerName);
+		}
+	}
+	else if (button == &markerButton)
+	{
+		addMarkerMode = !addMarkerMode;
 	}
 	//==================================================//
 	// Audio control buttons
@@ -925,6 +953,29 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 
 		if (clickableWaveformArea.contains(event.getPosition()))
 		{
+			//to use it for putting a marker :
+			if (addMarkerMode)
+			{
+				double clickX = event.position.x;
+				double relativeX = juce::jlimit(0.0, (double)clickableWaveformArea.getWidth(), clickX - clickableWaveformArea.getX());
+				double timeInSeconds = (relativeX / clickableWaveformArea.getWidth()) * thumbnail.getTotalLength();
+
+				// Add marker both visually & logically
+				juce::String markerName = "Marker " + juce::String(markers.size() + 1);
+				control->addMarker(markerName, timeInSeconds);
+				markers.push_back({ markerName, timeInSeconds });
+				markerSelectBox.addItem(markerName, markers.size());
+
+				DBG("Added " + markerName + " at " + juce::String(timeInSeconds, 2) + " seconds");
+
+				// Reset marker mode
+				addMarkerMode = false;
+				markerButton.setButtonText("Add Marker");
+
+				repaint();
+				return; // don't drag position when adding a marker
+			}
+			//======================================//
 			isUserDraggingPosition = true;
 
 			mouseDrag(event);
