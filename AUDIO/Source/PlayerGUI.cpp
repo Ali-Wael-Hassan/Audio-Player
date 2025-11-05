@@ -277,14 +277,15 @@ void PlayerGUI::paint(juce::Graphics& g) {
 			1.0f);
 		
 		// 🔹 Draw markers on top of waveform
-		for (auto& m : markers)
+		for (auto& marker : markers)
 		{
-			float x = (m.position / thumbnail.getTotalLength()) * waveformArea.getWidth() + waveformArea.getX();
+			float markerX = (marker.position / thumbnail.getTotalLength()) * waveformArea.getWidth() + waveformArea.getX();
 
-			g.setColour(juce::Colours::aqua);
-			g.drawLine(x, waveformArea.getY(), x, waveformArea.getBottom(), 2.0f);
+			g.setColour(juce::Colours::orange.withBrightness(1.0f)); // bright vivid color
+			g.drawLine(markerX, waveformArea.getY(), markerX, waveformArea.getBottom(), 2.0f); // 2px thickness
+
 			g.setColour(juce::Colours::white);
-			g.drawText(m.name, x + 3, waveformArea.getY() + 5, 60, 15, juce::Justification::left);
+			g.drawText(marker.name, (int)markerX + 4, (int)waveformArea.getY() + 2, 60, 15, juce::Justification::left);
 		}
 	}
 	else
