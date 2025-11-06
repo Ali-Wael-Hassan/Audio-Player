@@ -50,7 +50,7 @@ public:
     double getMarkerB();
 
     void toggleLooping();
-    bool isLooping() const;
+    int isLooping() const;
 
     juce::String getName();
     juce::String getTitle();
@@ -68,10 +68,62 @@ public:
 
     bool isPlaying() const { return transportSource.isPlaying(); }
 
+    void setCurrentPlaylistName(const juce::String& name) { currentPlaylistName = name; }
+    juce::String getCurrentPlaylistName() const { return currentPlaylistName; }
+    juce::String getFileSource() const { return pathFile; }
+    void setLooping(bool loop) { loopActive = loop; }
+
+    void startSleepTimer(int seconds);
+    void pauseSleepTimer();
+    void resumeSleepTimer();
+    void cancelSleepTimer();
+    bool isSleepTimerRunning() const;
+
 private:
+    class SleepTimer : public juce::Timer
+    {
+    public:
+        SleepTimer(PlayerAudio& owner) : player(&owner) {}
+
+        void start(int minutes)
+        {
+            remainingSeconds = minutes * 60;
+            paused = false;
+            startTimer(1000);
+        }
+
+        void pause() { paused = true; }
+        void resume() { paused = false; }
+        void cancel() { stopTimer(); remainingSeconds = 0; }
+        bool isRunning() const { return isTimerRunning(); }
+
+        void timerCallback() override
+        {
+            if (!paused && remainingSeconds > 0)
+            {
+                --remainingSeconds;
+                if (remainingSeconds == 0)
+                {
+                    stopTimer();
+                    player->stop();
+                }
+            }
+        }
+
+    private:
+        PlayerAudio* player;
+        int remainingSeconds = 0;
+        bool paused = false;
+    };
+
+    std::unique_ptr<SleepTimer> sleepTimer;
+
+    juce::String pathFile = "";
     PlayerAudioSignal* listen = nullptr;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
     PlaylistManager playlist;
+
+    juce::String currentPlaylistName = "Default";
 
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
@@ -81,7 +133,7 @@ private:
     juce::String titleText = "No Track Loaded";
     juce::String nameText = "Unknown";
     juce::String durationText = "00:00";
-    bool loopActive = false;
+    int loopActive = 0;
 
     //Task 10
     double markerA = -1.0;

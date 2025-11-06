@@ -1,10 +1,11 @@
 #include "PlayerAudio.h"
 
 PlayerAudio::PlayerAudio()
-    : playlist("x.txt")
+    : playlist("UserPlaylist.txt")
 {
     formatManager.registerBasicFormats();
     resamplingSource = std::make_unique<juce::ResamplingAudioSource>(&transportSource, false, 2);
+    sleepTimer = std::make_unique<SleepTimer>(*this);
 }
 
 PlayerAudio::~PlayerAudio() {
@@ -17,17 +18,28 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate) 
 }
 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
-    if (readerSource == nullptr) return;
+    if (readerSource == nullptr) {
+        bufferToFill.clearActiveBufferRegion();
+        return;
+    }
     resamplingSource->getNextAudioBlock(bufferToFill);
 
-    if (loopActive && transportSource.hasStreamFinished()) {
-        transportSource.setPosition(0.0);
-        transportSource.start();
-    }
-    else if (transportSource.hasStreamFinished()) {
-  
-        if (listen) {
-            listen->playBackFinished();
+    if (transportSource.hasStreamFinished())
+    {
+        if (loopActive == 1)
+        {
+            transportSource.setPosition(0.0);
+            transportSource.start();
+        }
+
+
+        else
+        {
+            if (listen)
+            {
+                transportSource.stop();
+                listen->playBackFinished();
+            }
         }
     }
 }
@@ -48,11 +60,13 @@ void PlayerAudio::start() {
 
 void PlayerAudio::stop() {
     transportSource.stop();
+    listen->playBackFinished();
 }
 
 void PlayerAudio::reset() {
     transportSource.stop();
     transportSource.setSource(nullptr);
+    pathFile = "";
     titleText = "No Track Loaded";
     nameText = "Unknown";
     durationText = "00:00";
@@ -71,6 +85,7 @@ void PlayerAudio::setGain(float val) {
 void PlayerAudio::startNewFromFile(juce::File file) {
     if (auto* reader = formatManager.createReaderFor(file)) {
         reset();
+        pathFile = file.getFullPathName();
 
         TagLib::FileRef openFile(file.getFullPathName().toRawUTF8());
 
@@ -154,8 +169,7 @@ juce::String PlayerAudio::startNewFromURL(juce::URL url)
     if (audioFile.existsAsFile())
     {
         DBG("File already exists locally: " << audioFile.getFullPathName());
-        startNewFromFile(audioFile);
-        return "";
+        return audioFile.getFullPathName();
     }
 
     std::unique_ptr<juce::InputStream> input(url.createInputStream(
@@ -273,10 +287,10 @@ double PlayerAudio::getLength() {
 
 void PlayerAudio::toggleLooping()
 {
-    loopActive = !loopActive;
+    loopActive = (loopActive + 1) % 4;
 }
 
-bool PlayerAudio::isLooping() const
+int PlayerAudio::isLooping() const
 {
     return loopActive;
 }
@@ -316,4 +330,33 @@ void PlayerAudio::jumpTime(double seconds)
 
 bool PlayerAudio::reachEnd() {
     return transportSource.hasStreamFinished();
+}
+
+void PlayerAudio::startSleepTimer(int seconds)
+{
+    if (sleepTimer)
+        sleepTimer->start(seconds);
+}
+
+void PlayerAudio::pauseSleepTimer()
+{
+    if (sleepTimer)
+        sleepTimer->pause();
+}
+
+void PlayerAudio::resumeSleepTimer()
+{
+    if (sleepTimer)
+        sleepTimer->resume();
+}
+
+void PlayerAudio::cancelSleepTimer()
+{
+    if (sleepTimer)
+        sleepTimer->cancel();
+}
+
+bool PlayerAudio::isSleepTimerRunning() const
+{
+    return sleepTimer && sleepTimer->isRunning();
 }

@@ -1,13 +1,45 @@
 #pragma once
 #include "PlayerAudio.h"
 #include <map>
+#include <cstdlib>
+
+class NewPlaylistPopup : public juce::Component
+{
+public:
+	NewPlaylistPopup(std::function<void(const juce::String&)> callback)
+		: onCreate(callback)
+	{
+		addAndMakeVisible(nameEditor);
+		addAndMakeVisible(createButton);
+
+		createButton.setButtonText("Create");
+		createButton.onClick = [this]()
+			{
+				if (onCreate)
+					onCreate(nameEditor.getText());
+				getParentComponent()->removeChildComponent(this);
+			};
+	}
+
+	void resized() override
+	{
+		nameEditor.setBounds(10, 10, getWidth() - 20, 24);
+		createButton.setBounds(10, 40, 80, 24);
+	}
+
+private:
+	juce::TextEditor nameEditor;
+	juce::TextButton createButton;
+	std::function<void(const juce::String&)> onCreate;
+};
+
 ///    على الكلام Bold الكلاس ده بيغير الحجم و بيعمل برده 
 class CustomButtonLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
 	juce::Font getTextButtonFont(juce::TextButton&, int buttonHeight) override
 	{
-		return juce::Font(20.0f, juce::Font::bold);
+		return juce::Font("Segoe UI Symbol", 24.0f, juce::Font::bold);
 	}
 };
 
@@ -20,13 +52,59 @@ class PlayerGUI :
 	// waveform و كمان مهم فى 
 	public juce::ChangeListener// تغيرات
 {
+public:
+	class Listener
+	{
+	public:
+		virtual ~Listener() = default;
+		virtual void returnToHomePage() = 0;
+		virtual void twoGUI() = 0;
+		virtual void openSettings() = 0;
+	};
+	PlayerGUI(PlayerAudio& control, juce::String url, juce::String fileName);
+	~PlayerGUI()
+	{
+
+	}
+
+	void loadSong(juce::String source);
+	void loadPlaylist(juce::String name);
+
+	void paint(juce::Graphics& g) override; //بترسم كل حاجة على الشاشة
+	void resized() override;//الجحم و التوزيعه 
+	void buttonClicked(juce::Button* button) override;// بتتنفذ لما حد يدوس على أي زرار
+	void sliderValueChanged(juce::Slider* slider) override;// سلايدر
+	void sliderDragStarted(juce::Slider* slider) override;// سلايدر
+	void sliderDragEnded(juce::Slider* slider) override;// سلايدر
+	void playBackFinished() override;//بتتنفذ لما الأغنية 
+	void loadMetaData() override;
+	void loadWave(juce::File file) override;
+	void timerCallback() override;// بتتنفذ كل فترة معينة (زي تحديث وقت الأغنية كل ثانية
+
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;//بتتنفذ لما يحصل تغيير في الصوت (زي لما يتحمل ملف جديد)
+	// تحريك ال wave 
+	void mouseDown(const juce::MouseEvent& event) override;
+	void mouseDrag(const juce::MouseEvent& event) override;
+	void mouseUp(const juce::MouseEvent& event) override;
+
+	juce::Slider& getVolume();
+	juce::Slider& getPosition();
+	void setPlayerListener(PlayerGUI::Listener* l) {listen = l; }
+
+	void reset();
+	void refreshPlaylistSelector();
+	void save(const std::string& path);
+	void setAll(float lastVolume, float lastPosition, bool loop);
 private:
+	juce::ComboBox playlistSelector;
 	// Custom LookAndFeel
 	CustomButtonLookAndFeel customLookAndFeel;
 
 	// Audio
 	//pointer البيشغل الكود
 	PlayerAudio* control;
+
+	PlayerGUI::Listener* listen;
 
 	// GUI Controls - Buttons
 	juce::TextButton loadButton{ "Load Files" };
@@ -53,8 +131,8 @@ private:
 	// Playlist Panel Controls //زوات حاجات بس فى حاجات منهم مش شغاله 
 	juce::TextButton addToPlaylistButton{ "Add to Playlist" }; //شغال
 	juce::TextButton removeFromPlaylistButton{ "Remove Selected" };//شغال
-	juce::TextButton savePlaylistButton{ "Save Playlist" };// مش شغاله
-	juce::TextButton loadPlaylistButton{ "Load Playlist" };//مش شغاله
+	juce::TextButton savePlaylistButton{ "Save Playlist" };
+	juce::TextButton addNewPlaylistButton{ "add Playlist" };
 	juce::Label playlistTitleLabel;
 
 	// Custom ListBox for Playlist // بتاع علي 
@@ -129,6 +207,13 @@ private:
 			return "";
 		}
 
+		void deselectAll()
+		{
+			deselectAllRows();
+			repaint();
+		}
+
+
 	private:
 		PlayerGUI& owner;
 		std::vector<std::pair<std::string, std::string>> playlistItems;
@@ -140,6 +225,7 @@ private:
 	std::string currentPlaylistKey;
 	int currentPlaylistIndex = -1;
 	bool showPlaylistPanel = false;
+	bool twoGUIs = false;
 
 	// Custom Circular Slider for Volume
 	class CircularVolumeSlider : public juce::Slider //للتحكم في مستوى الصوت
@@ -247,34 +333,4 @@ private:
 	juce::Rectangle<int> controlButtonsArea;
 	juce::Rectangle<int> playlistPanelArea;
 	juce::Rectangle<int> headerBoxArea;
-
-public:
-	PlayerGUI(PlayerAudio& control, juce::String url, juce::String fileName);
-	~PlayerGUI()
-	{
-		// Clean up LookAndFeel (مفيش nav buttons دلوقتي)
-	}
-
-	void loadSong(juce::String source);
-
-	void paint(juce::Graphics& g) override; //بترسم كل حاجة على الشاشة
-	void resized() override;//الجحم و التوزيعه 
-	void buttonClicked(juce::Button* button) override;// بتتنفذ لما حد يدوس على أي زرار
-	void sliderValueChanged(juce::Slider* slider) override;// سلايدر
-	void sliderDragStarted(juce::Slider* slider) override;// سلايدر
-	void sliderDragEnded(juce::Slider* slider) override;// سلايدر
-	void playBackFinished() override;//بتتنفذ لما الأغنية 
-	void loadMetaData() override;
-	void loadWave(juce::File file) override;
-	void timerCallback() override;// بتتنفذ كل فترة معينة (زي تحديث وقت الأغنية كل ثانية
-
-	void changeListenerCallback(juce::ChangeBroadcaster* source) override;//بتتنفذ لما يحصل تغيير في الصوت (زي لما يتحمل ملف جديد)
-	// تحريك ال wave 
-	void mouseDown(const juce::MouseEvent& event) override;
-	void mouseDrag(const juce::MouseEvent& event) override;
-	void mouseUp(const juce::MouseEvent& event) override;
-
-	juce::Slider& getVolume();
-	juce::Slider& getPosition();
-
 };

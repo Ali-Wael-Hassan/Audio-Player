@@ -4,6 +4,9 @@
 
 void PlayerGUI::initializeControls()
 {
+	static CustomButtonLookAndFeel emojiLook;
+	juce::LookAndFeel::setDefaultLookAndFeel(&emojiLook);
+
 	// Button set up with modern circular style
 	for (auto* btn : buttons)
 	{
@@ -16,13 +19,13 @@ void PlayerGUI::initializeControls()
 	}
 
 	// Control buttons with emojis - larger size
-	restartButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xAE"));
+	restartButton.setButtonText(juce::String::fromUTF8("\xE2\x86\xBB"));
 	stopButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB9"));
-	playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
+	playButton.setButtonText(juce::String::fromUTF8("\xE2\x96\xB6"));
 	muteButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x8A"));
 	go_to_endButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xAD"));
-	repeatButton.setButtonText(juce::String::fromUTF8("\xE2\x86\xBB"));
-
+	go_to_startButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xAE"));
+	repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x84"));
 	forwardButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xA9"));
 	backwardButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xAA"));
 
@@ -38,6 +41,7 @@ void PlayerGUI::initializeControls()
 		btn->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
 	}
 
+	loadButton.setVisible(false);
 	// تخصيص لون Load button
 	loadButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(70, 130, 180));
 	loadButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour::fromRGB(90, 150, 200));
@@ -65,15 +69,15 @@ void PlayerGUI::initializeControls()
 	savePlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(80, 150, 100));
 	savePlaylistButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
 
-	addAndMakeVisible(loadPlaylistButton);
-	loadPlaylistButton.addListener(this);
-	loadPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(150, 100, 80));
-	loadPlaylistButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+	addAndMakeVisible(addNewPlaylistButton);
+	addNewPlaylistButton.addListener(this);
+	addNewPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(150, 100, 80));
+	addNewPlaylistButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
 
 	// Playlist Title Label
 	//ازار ال playlist
 	playlistTitleLabel.setText(juce::String::fromUTF8("\xF0\x9F\x8E\xB6 Playlist"), juce::dontSendNotification);
-	playlistTitleLabel.setFont(juce::FontOptions(20.0f, juce::Font::bold));
+	playlistTitleLabel.setFont(juce::Font(20.0f, juce::Font::bold));
 	playlistTitleLabel.setJustificationType(juce::Justification::centred);
 	playlistTitleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 	addAndMakeVisible(playlistTitleLabel);
@@ -85,7 +89,7 @@ void PlayerGUI::initializeControls()
 	// Label set up
 	for (auto& [msg, textLabel] : labels) {
 		textLabel->setText(msg, juce::dontSendNotification);
-		textLabel->setFont(juce::FontOptions(14.0f, juce::Font::bold));
+		textLabel->setFont(juce::Font(14.0f, juce::Font::bold));
 		textLabel->setJustificationType(juce::Justification::centredLeft);
 		textLabel->setColour(juce::Label::textColourId, juce::Colours::white.withAlpha(0.9f));
 		textLabel->setColour(juce::Label::backgroundColourId, juce::Colours::transparentBlack);
@@ -128,7 +132,7 @@ void PlayerGUI::initializeControls()
 	// Speed Label
 	// سلايدر السرعة
 	speedLabel.setText("Speed", juce::dontSendNotification);
-	speedLabel.setFont(juce::FontOptions(18.0f, juce::Font::bold));
+	speedLabel.setFont(juce::Font(18.0f, juce::Font::bold));
 	speedLabel.setJustificationType(juce::Justification::centred);
 	speedLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 	addAndMakeVisible(speedLabel);
@@ -155,18 +159,48 @@ void PlayerGUI::initializeControls()
 		};
 
 	addAndMakeVisible(positionSlider);
-	if (control)
-		control->setSignalListener(this); 
 
+	addAndMakeVisible(playlistSelector);
+	playlistSelector.clear(juce::dontSendNotification);
+
+	auto& manager = control->getPlaylistManager();
+	auto playlistNames = manager.getPlaylistNames();
+
+	int id = 1;
+	for (const auto& name : playlistNames)
+	{
+		playlistSelector.addItem(name, id++);
+	}
+
+	if (!playlistNames.empty())
+		playlistSelector.setSelectedId(1, juce::dontSendNotification);
+
+	playlistSelector.setColour(juce::ComboBox::backgroundColourId, juce::Colour::fromRGB(60, 50, 100));
+	playlistSelector.setColour(juce::ComboBox::textColourId, juce::Colours::white);
+	playlistSelector.setColour(juce::ComboBox::arrowColourId, juce::Colours::white);
+	playlistSelector.setColour(juce::ComboBox::outlineColourId, juce::Colour::fromRGB(120, 100, 180));
+	playlistSelector.setVisible(showPlaylistPanel);
+
+	playlistSelector.onChange = [this]() {
+		auto selectedName = playlistSelector.getText().toStdString();
+		if (!selectedName.empty())
+		{
+			control->getPlaylistManager().setActivePlaylist(selectedName);
+			refreshPlaylist();
+			refreshPlaylistSelector();
+		}
+		};
 	setSize(1400, 600);//حجم الشاشه 
 }
 
-PlayerGUI::PlayerGUI(PlayerAudio& control, juce::String url = "", juce::String fileName = "")
+PlayerGUI::PlayerGUI(PlayerAudio& control, juce::String url, juce::String fileName)
 	: control(&control),
 	thumbnail(512, this->control->getFormatManager(), this->control->getThumbnailCache()),
 	showPlaylistPanel(false), isUserDraggingPosition(false),
 	stoped(true), muted(false), lastVal(0.5), currentPlaylistIndex(-1)
 {
+	this->control->setSignalListener(this);
+
 	initializeControls();
 	thumbnail.addChangeListener(this);
 	startTimerHz(30);
@@ -191,10 +225,8 @@ PlayerGUI::PlayerGUI(PlayerAudio& control, juce::String url = "", juce::String f
 			stoped = false;
 		}
 	}
-
-	control.setSignalListener(this);
-
 	refreshPlaylist();
+	refreshPlaylistSelector();
 }
 
 void PlayerGUI::loadSong(juce::String source) {
@@ -210,11 +242,15 @@ void PlayerGUI::loadSong(juce::String source) {
 		positionSlider.setRange(0.0, control->getLength(), 0.01);
 		positionSlider.setValue(0.0, juce::dontSendNotification);
 
-		if (control->audioExist()) {
-			playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
-			stoped = false;
-		}
+		playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
+		stoped = false;
 	}
+}
+
+void PlayerGUI::loadPlaylist(juce::String name) {
+	control->getPlaylistManager().setActivePlaylist(name.toStdString());
+	refreshPlaylist();
+	refreshPlaylistSelector();
 }
 
 //يلا نرسم يلاااااااااااااا😍😍😍
@@ -228,22 +264,18 @@ void PlayerGUI::paint(juce::Graphics& g) {
 		static_cast<float>(getHeight()),
 		false
 	);
-
 	g.setGradientFill(gradient);
 	g.fillRect(getLocalBounds());
-
 	// Draw Playlist Panel if visible
 	if (showPlaylistPanel)
 	{
 		g.setColour(juce::Colour::fromRGB(40, 20, 70).withAlpha(0.95f));
 		g.fillRoundedRectangle(playlistPanelArea.toFloat(), 15.0f);
 	}
-
 	// Draw waveform area
 	//حلوه اوى و جميلا لا تلعب
 	g.setColour(juce::Colour::fromRGB(150, 50, 200).withAlpha(0.6f));
 	g.fillRoundedRectangle(waveformArea.toFloat(), 25.0f);
-
 	// Draw waveform
 	//رسم الموجة الصوتية نفسها
 	if (thumbnail.getTotalLength() > 0.0)
@@ -261,36 +293,29 @@ void PlayerGUI::paint(juce::Graphics& g) {
 		g.setColour(juce::Colours::white.withAlpha(0.5f));
 		g.drawText("Loading audio...", waveformArea, juce::Justification::centred);
 	}
-
 	// Draw playhead
-	//الخط الاحمر 
+	//الخط الاحمر 
 	if (control != nullptr && control->isPlaying() && thumbnail.getTotalLength() > 0.0)
 	{
 		double position = control->getAudioPosition();
 		double totalLength = thumbnail.getTotalLength();
-
 		float playheadX = static_cast<float>(juce::jmap(position, 0.0, totalLength,// ← دالة بتحول الموضع من (0 → طول الأغنية) لـ (بداية المنطقة → نهاية المنطقة)
 			static_cast<double>(waveformArea.getX() + 10),
 			static_cast<double>(waveformArea.getRight() - 10)));
-
 		g.setColour(juce::Colours::red);
 		g.drawVerticalLine(static_cast<int>(playheadX),
 			static_cast<float>(waveformArea.getY() + 10),
 			static_cast<float>(waveformArea.getBottom() - 10));
 	}
-
 	// Draw dots pattern
 	g.setColour(juce::Colours::black.withAlpha(0.3f));
 	int dotSpacing = 20;
 	int dotSize = 8;
 	int verticalSpacing = 15;
-
 	auto sliderBounds = positionSlider.getBounds();
-
 	// First row (closest to slider)
 	int dotCenterY_1 = sliderBounds.getY() - 10;
 	int dotTopY_1 = dotCenterY_1 - (dotSize / 2);
-
 	for (int x = sliderBounds.getX(); x < sliderBounds.getRight(); x += dotSpacing)
 	{
 		g.fillEllipse(static_cast<float>(x - dotSize / 2),
@@ -298,10 +323,8 @@ void PlayerGUI::paint(juce::Graphics& g) {
 			static_cast<float>(dotSize),
 			static_cast<float>(dotSize));
 	}
-
 	// Second row (above first row)
 	int dotTopY_2 = dotTopY_1 - verticalSpacing;
-
 	for (int x = sliderBounds.getX(); x < sliderBounds.getRight(); x += dotSpacing)
 	{
 		g.fillEllipse(static_cast<float>(x - dotSize / 2),
@@ -309,10 +332,8 @@ void PlayerGUI::paint(juce::Graphics& g) {
 			static_cast<float>(dotSize),
 			static_cast<float>(dotSize));
 	}
-
 	// Draw audio picture box
-	if (headerBoxArea.getWidth() > 0 && headerBoxArea.getHeight() > 0)
-	{
+	if (headerBoxArea.getWidth() > 0 && headerBoxArea.getHeight() > 0) {
 		juce::ColourGradient headerGradient(
 			juce::Colour::fromRGB(120, 70, 200).withAlpha(0.8f),
 			headerBoxArea.getTopLeft().toFloat(),
@@ -323,32 +344,28 @@ void PlayerGUI::paint(juce::Graphics& g) {
 		g.setGradientFill(headerGradient);
 		g.fillRoundedRectangle(headerBoxArea.toFloat(), 20.0f);
 
-		g.setColour(juce::Colours::white.withAlpha(0.7f));
-		g.setFont(juce::FontOptions(28.0f, juce::Font::bold));
-		g.drawText("pictuer of Audio", headerBoxArea, juce::Justification::centred, true);
+		g.setColour(juce::Colours::white.withAlpha(0.9f));
+		g.setFont(juce::Font((float)headerBoxArea.getHeight() * 0.6f, juce::Font::bold));
+		g.drawText(juce::String::fromUTF8("🎵"), headerBoxArea, juce::Justification::centred, true);
 	}
-
 	// Draw background circle for volume control
 	auto volumeCenter = volumeSlider.getBounds().toFloat().getCentre();
 	float backgroundRadius = 47.0f;
 	g.setColour(juce::Colour::fromRGB(25, 50, 95));
 	g.fillEllipse(volumeCenter.x - backgroundRadius, volumeCenter.y - backgroundRadius,
-		backgroundRadius * 2.0f, backgroundRadius * 2.0f);
-
+	backgroundRadius * 2.0f, backgroundRadius * 2.0f);
 	// Mute button background - match the circle color
 	auto muteBtnBounds = muteButton.getBounds().toFloat();
 	g.setColour(juce::Colour::fromRGB(25, 50, 95)); // نفس لون الدائرة
 	g.fillEllipse(muteBtnBounds.getX(), muteBtnBounds.getY(),
-		muteBtnBounds.getWidth(), muteBtnBounds.getHeight());
-
+	muteBtnBounds.getWidth(), muteBtnBounds.getHeight());
 	// Draw rounded rectangle background for control buttons
 	auto buttonsBg = controlButtonsArea.toFloat();
 	g.setColour(juce::Colour::fromRGB(80, 60, 120).withAlpha(0.7f));
 	g.fillRoundedRectangle(buttonsBg, 30.0f);
-
 	// Draw individual button backgrounds
 	std::vector<juce::TextButton*> controlBtns = {
-	&stopButton, &playButton, &restartButton, &backwardButton, &forwardButton, &go_to_endButton, &repeatButton
+	&stopButton, &playButton, &restartButton, &backwardButton, &forwardButton, &go_to_endButton, &repeatButton, &go_to_startButton
 	};
 	for (auto* btn : controlBtns)
 	{
@@ -364,11 +381,13 @@ void PlayerGUI::paint(juce::Graphics& g) {
 void PlayerGUI::resized() {
 	auto bounds = getLocalBounds();
 
-	// Playlist Panel on the right
+	juce::Rectangle<int> mainArea = bounds;
+
 	if (showPlaylistPanel)
 	{
-		playlistPanelArea = bounds.removeFromRight(350);
+		playlistPanelArea = bounds.removeFromRight(bounds.getWidth() * 0.14);
 		auto playlistBounds = playlistPanelArea.reduced(15);
+		mainArea = bounds;
 
 		playlistTitleLabel.setBounds(playlistBounds.removeFromTop(40));
 		playlistBounds.removeFromTop(10);
@@ -377,36 +396,40 @@ void PlayerGUI::resized() {
 		addToPlaylistButton.setBounds(buttonRow1.removeFromLeft(buttonRow1.getWidth() / 2 - 5));
 		buttonRow1.removeFromLeft(10);
 		removeFromPlaylistButton.setBounds(buttonRow1);
+
 		playlistBounds.removeFromTop(10);
 		auto buttonRow2 = playlistBounds.removeFromTop(35);
 		savePlaylistButton.setBounds(buttonRow2.removeFromLeft(buttonRow2.getWidth() / 2 - 5));
 		buttonRow2.removeFromLeft(10);
-		loadPlaylistButton.setBounds(buttonRow2);
+		addNewPlaylistButton.setBounds(buttonRow2);
+
 		playlistBounds.removeFromTop(10);
+
+		playlistSelector.setBounds(playlistBounds.removeFromTop(35));
 		playlistBox->setBounds(playlistBounds);
 	}
+
+	playlistSelector.setVisible(showPlaylistPanel);
 
 	addToPlaylistButton.setVisible(showPlaylistPanel);
 	removeFromPlaylistButton.setVisible(showPlaylistPanel);
 	savePlaylistButton.setVisible(showPlaylistPanel);
-	loadPlaylistButton.setVisible(showPlaylistPanel);
+	addNewPlaylistButton.setVisible(showPlaylistPanel);
 	playlistTitleLabel.setVisible(showPlaylistPanel);
 	playlistBox->setVisible(showPlaylistPanel);
 
-	// Volume controls on right
-	auto rightPanel = bounds.removeFromRight(180);
+
+	auto rightPanel = mainArea.removeFromRight(180);
 	rightPanel.removeFromTop(30);
 	auto volumeControlArea = rightPanel.removeFromTop(180);
 	auto centeredArea = volumeControlArea.withSizeKeepingCentre(170, 170);
 	volumeSlider.setBounds(centeredArea);
 
-	// Mute button centered inside the circular volume slider
 	auto muteArea = centeredArea.withSizeKeepingCentre(60, 60);
 	muteButton.setBounds(muteArea);
 
 
-	// Speed slider on left
-	auto leftPanel = bounds.removeFromLeft(80);
+	auto leftPanel = mainArea.removeFromLeft(80);
 	leftPanel.removeFromTop(30);
 
 	auto settingsArea = leftPanel.removeFromTop(45);
@@ -414,21 +437,15 @@ void PlayerGUI::resized() {
 
 	leftPanel.removeFromTop(5);
 
-
-
-	// نخلي الـ speed label في الآخر (تحت)
 	auto sliderArea = leftPanel.removeFromTop(leftPanel.getHeight() - 60);
 	speedSlider.setBounds(sliderArea.reduced(20, 40));
 
-	// Speed label في الآخر
 	speedLabel.setBounds(leftPanel.removeFromTop(40).reduced(5));
 
-	bounds.removeFromTop(10);
+	mainArea.removeFromTop(10);
 
-	// Control buttons area
-	controlButtonsArea = bounds.removeFromBottom(65).reduced(120, 5);
+	controlButtonsArea = mainArea.removeFromBottom(65).reduced(120, 5);
 
-	// Info labels (Metadata)
 	int infoHeight = 50;
 	int infoMargin = 5;
 	auto infoY = controlButtonsArea.getY() - infoMargin - infoHeight;
@@ -439,7 +456,6 @@ void PlayerGUI::resized() {
 		infoHeight
 	);
 
-	// Position Slider
 	int sliderHeight = 25;
 	int sliderMargin = 5;
 	auto positionY = infoArea.getY() - sliderMargin - sliderHeight;
@@ -450,11 +466,10 @@ void PlayerGUI::resized() {
 		sliderHeight
 	);
 
-	// Waveform area
 	int waveformHeight = 200;
 	int spaceForDots = 50;
 	int waveformY_new = positionY - spaceForDots - waveformHeight;
-	auto originalWaveformBounds = bounds.reduced(30, 30);
+	auto originalWaveformBounds = mainArea.reduced(30, 30);
 
 	waveformArea = juce::Rectangle<int>(
 		originalWaveformBounds.getX(),
@@ -463,19 +478,17 @@ void PlayerGUI::resized() {
 		waveformHeight
 	);
 
-	// Header box (audio picture)
-	auto topEmptySpaceBounds = bounds.reduced(20);
+	auto topEmptySpaceBounds = mainArea.reduced(20);
 	int headerBoxWidth = 450;
 	int headerBoxHeight = 350;
-	headerBoxWidth = juce::jmin(headerBoxWidth, bounds.getWidth() - 20);
-	headerBoxHeight = juce::jmin(headerBoxHeight, bounds.getHeight() - 20);
+	headerBoxWidth = juce::jmin(headerBoxWidth, mainArea.getWidth() - 20);
+	headerBoxHeight = juce::jmin(headerBoxHeight, mainArea.getHeight() - 20);
 
-	int headerBoxX = bounds.getCentreX() - (headerBoxWidth / 2);
-	int headerBoxY = bounds.getY() + 10;
+	int headerBoxX = mainArea.getCentreX() - (headerBoxWidth / 2);
+	int headerBoxY = mainArea.getY() + 10;
 
 	headerBoxArea = juce::Rectangle<int>(headerBoxX, headerBoxY, headerBoxWidth, headerBoxHeight);
 
-	// Info area distribution
 	auto leftInfo = infoArea.removeFromLeft(infoArea.getWidth() / 2);
 	auto rightInfo = infoArea;
 
@@ -490,57 +503,44 @@ void PlayerGUI::resized() {
 	duration.setBounds(leftInfo.removeFromTop(25));
 	durationHeader.setBounds(0, 0, 0, 0);
 
-	// Load button
-	int loadButtonWidth = 100;
-	int loadButtonHeight = 45;
-	int loadSpacing = 15;
+	loadButton.setBounds(0, 0, 0, 0);
 
-	loadButton.setBounds(
-		controlButtonsArea.getRight() + loadSpacing,
-		controlButtonsArea.getY() + (controlButtonsArea.getHeight() - loadButtonHeight) / 2,
-		loadButtonWidth,
-		loadButtonHeight
-	);
-
-
-
-	// Control buttons
 	auto buttonRow = controlButtonsArea.reduced(15, 6);
 
-	int numMainButtons = 7;
-	int buttonWidth = 60;
-	int buttonHeight = 45;
-	int buttonSpacing_ctrl = (buttonRow.getWidth() - (numMainButtons * buttonWidth)) / (numMainButtons + 1);
+	std::vector<juce::TextButton*> controlBtnsInOrder = {
+		&stopButton, &go_to_startButton, &backwardButton, &playButton,
+		&forwardButton, &go_to_endButton, &restartButton, &repeatButton
+	};
 
-	int x = buttonRow.getX() + buttonSpacing_ctrl;
+	int numBtns = (int)controlBtnsInOrder.size();
+	int buttonHeight = buttonRow.getHeight();
+	int totalAvailableWidth = buttonRow.getWidth();
+
+	int minSpacing = 5;
+
+	int availableWidthForButtons = totalAvailableWidth - ((numBtns + 1) * minSpacing);
+	int buttonWidth = availableWidthForButtons / numBtns;
+
+	if (buttonWidth < 37) {
+		buttonWidth = 37;
+	}
+
+	if (buttonWidth > 70) {
+		buttonWidth = 70;
+	}
+
+	int spacing = (totalAvailableWidth - (numBtns * buttonWidth)) / (numBtns + 1);
+
+	int currentX = buttonRow.getX() + spacing;
 	int y = buttonRow.getY();
 
-	//الترتيب ال علي عاوزه 
-	stopButton.setBounds(x, y, buttonWidth, buttonHeight);
-	x += buttonWidth + buttonSpacing_ctrl;
+	for (auto* btn : controlBtnsInOrder)
+	{
+		btn->setBounds(currentX, y, buttonWidth, buttonHeight);
+		currentX += buttonWidth + spacing;
+	}
 
-
-	restartButton.setBounds(x, y, buttonWidth, buttonHeight);
-	x += buttonWidth + buttonSpacing_ctrl;
-
-
-	backwardButton.setBounds(x, y, buttonWidth, buttonHeight);
-	x += buttonWidth + buttonSpacing_ctrl;
-
-	playButton.setBounds(x, y, buttonWidth, buttonHeight);
-	x += buttonWidth + buttonSpacing_ctrl;
-
-	forwardButton.setBounds(x, y, buttonWidth, buttonHeight);
-	x += buttonWidth + buttonSpacing_ctrl;
-
-	go_to_endButton.setBounds(x, y, buttonWidth, buttonHeight);
-	x += buttonWidth + buttonSpacing_ctrl;
-
-	repeatButton.setBounds(x, y, buttonWidth, buttonHeight);
-
-	// Hide unused buttons
-	go_to_startButton.setBounds(0, 0, 0, 0);
-	speedButton.setBounds(0, 0, 0, 0);
+	loadButton.setBounds(0, 0, 0, 0);
 }
 
 void PlayerGUI::buttonClicked(juce::Button* button) {
@@ -549,30 +549,38 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 	// Playlist buttons
 	if (button == &addToPlaylistButton) {
 		fileChooser = std::make_unique<juce::FileChooser>(
-			"Select an audio file...",
+			"Select audio file(s)...",
 			juce::File{},
-			".wav;.mp3;.flac;.aiff;*.ogg"
+			"*.wav;*.mp3;*.flac;*.aiff;*.ogg"
 		);
+
 		fileChooser->launchAsync(
-			juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-			[this](const juce::FileChooser& fc) {
-				auto file = fc.getResult();
-				if (file.existsAsFile()) {
-					std::string fileName = file.getFileNameWithoutExtension().toStdString();
-					std::string filePath = file.getFullPathName().toStdString();
+			juce::FileBrowserComponent::openMode |
+			juce::FileBrowserComponent::canSelectFiles |
+			juce::FileBrowserComponent::canSelectMultipleItems,
 
-					auto& playlist = control->getPlaylistManager();
-					auto songs = playlist.getSongs("front");
+			[this](const juce::FileChooser& fc)
+			{
+				auto files = fc.getResults();
 
-					if (songs.empty()) {
-						playlist.add("front", fileName, filePath);
+				if (files.isEmpty())
+					return;
+
+				auto& playlist = control->getPlaylistManager();
+
+				for (const auto& file : files)
+				{
+					if (file.existsAsFile())
+					{
+						std::string fileName = file.getFileNameWithoutExtension().toStdString();
+						std::string filePath = file.getFullPathName().toStdString();
+
+						playlist.add(fileName, filePath);
 					}
-					else {
-						playlist.add(songs.back().first, fileName, filePath);
-					}
-
-					refreshPlaylist();
 				}
+
+				refreshPlaylist();
+				refreshPlaylistSelector();
 			});
 		return;
 	}
@@ -580,18 +588,36 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 		std::string selectedKey = playlistBox->getSelectedItemKey();
 		if (!selectedKey.empty()) {
 			control->getPlaylistManager().remove(selectedKey);
+			resized();
+			repaint();
+			repaint(waveformArea);
 			refreshPlaylist();
 		}
 		return;
 	}
 	else if (button == &savePlaylistButton) {
-		control->getPlaylistManager().save("x.txt");
+		control->getPlaylistManager().save("UserPlayList.txt");
 		return;
 	}
-	else if (button == &loadPlaylistButton) {
-		control->getPlaylistManager().load("x.txt");
-		refreshPlaylist();
-		return;
+	else if (button == &addNewPlaylistButton)
+	{
+		auto* popup = new NewPlaylistPopup([this](const juce::String& name)
+			{
+				if (name.isNotEmpty())
+				{
+					auto& manager = control->getPlaylistManager();
+					manager.createNewPlaylist(name.toStdString());
+					manager.setActivePlaylist(name.toStdString());
+					refreshPlaylist();
+					refreshPlaylistSelector();
+				}
+			});
+
+		auto popupWidth = 200;
+		auto popupHeight = 100;
+		auto center = getLocalBounds().getCentre();
+		popup->setBounds(center.x - popupWidth / 2, center.y - popupHeight / 2, popupWidth, popupHeight);
+		addAndMakeVisible(popup);
 	}
 
 
@@ -615,7 +641,70 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 
 	else if (button == &settingsButton)
 	{
-		
+		juce::PopupMenu settingsMenu;
+		settingsMenu.addItem(1, "Load Audio File...");
+
+		if (showPlaylistPanel)
+			settingsMenu.addItem(2, "Hide Playlist Panel");
+		else
+			settingsMenu.addItem(2, "Show Playlist Panel");
+
+		if (twoGUIs)
+			settingsMenu.addItem(3, "Close Second Player");
+		else
+			settingsMenu.addItem(3, "Open Second Player");
+
+		settingsMenu.addItem(4, "Save");
+		settingsMenu.addSeparator();
+		settingsMenu.addItem(5, "Go to Home Page");
+		settingsMenu.addItem(6, "Settings");
+
+		settingsMenu.showMenuAsync(
+			juce::PopupMenu::Options().withTargetComponent(settingsButton),
+			[this](int result)
+			{
+				if (result == 0)
+					return;
+
+				switch (result)
+				{
+				case 1:
+					buttonClicked(&loadButton);
+					break;
+
+				case 2:
+					showPlaylistPanel = !showPlaylistPanel;
+					resized();
+					repaint();
+					break;
+
+				case 3:
+					twoGUIs = !twoGUIs;
+					if (listen != nullptr)
+						listen->twoGUI();
+					resized();
+					repaint();
+					break;
+
+				case 4:
+					save("recent.txt");
+					break;
+
+				case 5:
+					if (listen != nullptr)
+						listen->returnToHomePage();
+					break;
+
+				case 6:
+					if (listen != nullptr)
+						listen->openSettings();
+					break;
+
+				default:
+					break;
+				}
+			}
+		);
 	}
 
 
@@ -701,25 +790,34 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 	else if (button == &go_to_startButton) {
 		if (control->audioExist()) {
 			control->setPosition(0.0);
+			positionSlider.setValue(0.0);
 			repaint(waveformArea);
 		}
 	}
 	else if (button == &go_to_endButton) {
 		if (control->audioExist()) {
 			control->setPosition(control->getLength());
+			positionSlider.setValue(control->getLength());
+			repaint(waveformArea);
 		}
 	}
 	else if (button == &repeatButton)
 	{
 		if (!control->audioExist()) return;
 		control->toggleLooping();
-		if (control->isLooping())
+		if (control->isLooping() == 0)
 		{
+			repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x84"));
+		}
+		else if (control->isLooping() == 1)
+		{
+			repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x82"));
+		}
+		else if (control->isLooping() == 2) {
 			repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x81"));
 		}
-		else
-		{
-			repeatButton.setButtonText(juce::String::fromUTF8("\xE2\x86\xBB"));
+		else {
+			repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x80"));
 		}
 	}
 }
@@ -813,6 +911,56 @@ void PlayerGUI::playBackFinished()
 {
 	playButton.setButtonText(juce::String::fromUTF8("\xE2\x96\xB6"));
 	stoped = true;
+
+	if (control == nullptr) return;
+
+	int mode = control->isLooping();
+
+	if (mode == 1 && control->reachEnd())
+	{
+		control->restart();
+		playButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x82"));
+		stoped = false;
+		return;
+	}
+	else if (mode == 2 && control->reachEnd())
+	{
+		auto& manager = control->getPlaylistManager();
+		std::string activePlaylistName = manager.getActivePlaylist();
+
+		if (!activePlaylistName.empty())
+		{
+			auto songs = manager.getSongs(activePlaylistName);
+			if (songs.size() > 0)
+			{
+				int nextIndex = (currentPlaylistIndex + 1) % songs.size();
+
+				playTrackFromPlaylist(nextIndex);
+
+				repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x81"));
+				return;
+			}
+		}
+	}
+	else if (mode == 3 && control->reachEnd())
+	{
+		auto& manager = control->getPlaylistManager();
+		std::string activePlaylistName = manager.getActivePlaylist();
+
+		if (!activePlaylistName.empty())
+		{
+			auto songs = manager.getSongs(activePlaylistName);
+			if (songs.size() > 0)
+			{
+				int nextIndex = std::rand() % songs.size();
+
+				playTrackFromPlaylist(nextIndex);
+
+				repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x80"));
+				return;
+			}
+		}
+	}
 }
 
 void PlayerGUI::loadMetaData()
@@ -834,7 +982,16 @@ void PlayerGUI::refreshPlaylist()
 {
 	if (control == nullptr) return;
 
-	auto songs = control->getPlaylistManager().getSongs("front");
+	auto& manager = control->getPlaylistManager();
+	std::string activePlaylistName = manager.getActivePlaylist();
+
+	if (activePlaylistName.empty())
+	{
+		playlistBox->updatePlaylist({});
+		return;
+	}
+
+	auto songs = manager.getSongs(activePlaylistName);
 	playlistBox->updatePlaylist(songs);
 }
 
@@ -842,10 +999,18 @@ void PlayerGUI::playTrackFromPlaylist(int index)
 {
 	if (control == nullptr) return;
 
-	auto songs = control->getPlaylistManager().getSongs("front");
+	auto& manager = control->getPlaylistManager();
+	std::string activePlaylistName = manager.getActivePlaylist();
+	if (activePlaylistName.empty())
+		return;
+
+	auto songs = manager.getSongs(activePlaylistName);
+
 	if (index < 0 || index >= songs.size()) return;
 
 	std::string filePath = songs[index].second;
+	if (filePath.find("http://") != std::string::npos || filePath.find("https://") != std::string::npos) filePath = control->startNewFromURL(juce::URL(filePath)).toStdString();
+
 	juce::File file(filePath);
 
 	if (file.existsAsFile())
@@ -861,11 +1026,8 @@ void PlayerGUI::playTrackFromPlaylist(int index)
 		positionSlider.setRange(0.0, control->getLength(), 0.01);
 		positionSlider.setValue(0.0, juce::dontSendNotification);
 
-		if (control->audioExist())
-		{
-			playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
-			stoped = false;
-		}
+		playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
+		stoped = false;
 	}
 }
 // لما ادوس على ال wave يتغير ال position 
@@ -944,4 +1106,174 @@ juce::Slider& PlayerGUI::getVolume()
 juce::Slider& PlayerGUI::getPosition()
 {
 	return positionSlider;
+}
+
+void PlayerGUI::reset()
+{
+	if (control)
+	{
+		control->stop();
+		control->setPosition(0.0);
+
+		if (control->isLooping())
+		{
+			control->toggleLooping();
+			repeatButton.setButtonText(juce::String::fromUTF8("\xE2\x86\xBB"));
+		}
+	}
+
+	thumbnail.clear();
+	showPlaylistPanel = false;
+
+	positionSlider.setRange(0.0, 1.0, 0.01);
+	positionSlider.setValue(0.0, juce::dontSendNotification);
+	volumeSlider.setValue(0.5, juce::dontSendNotification);
+	speedSlider.setValue(1.0, juce::dontSendNotification);
+
+	name.setText("", juce::dontSendNotification);
+	title.setText("", juce::dontSendNotification);
+	duration.setText("", juce::dontSendNotification);
+
+	stoped = true;
+	playButton.setButtonText(juce::String::fromUTF8("\xE2\x96\xB6"));
+
+	muted = false;
+	lastVal = 0.5;
+	muteButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x8A"));
+
+	currentPlaylistIndex = -1;
+	currentPlaylistKey = "";
+	if (playlistBox)
+	{
+		playlistBox->deselectAll();
+		playlistBox->setCurrentPlayingIndex(-1);
+	}
+
+	repaint();
+	resized();
+}
+
+void PlayerGUI::refreshPlaylistSelector()
+{
+	if (!control) return;
+
+	playlistSelector.clear(juce::dontSendNotification);
+
+	auto& manager = control->getPlaylistManager();
+	auto playlistNames = manager.getPlaylistNames();
+
+	int id = 1;
+	for (const auto& name : playlistNames)
+	{
+		playlistSelector.addItem(name, id++);
+	}
+
+	auto activePlaylist = manager.getActivePlaylist();
+	if (!activePlaylist.empty())
+	{
+		for (int i = 1; i <= playlistSelector.getNumItems(); ++i)
+		{
+			if (playlistSelector.getItemText(i - 1).toStdString() == activePlaylist)
+			{
+				playlistSelector.setSelectedId(i, juce::dontSendNotification);
+				break;
+			}
+		}
+	}
+	else if (!playlistNames.empty())
+	{
+		playlistSelector.setSelectedId(1, juce::dontSendNotification);
+	}
+}
+// Format  Title|artist|path|url|thumbnailFile|thumbnailUrl|duration|lastVolume|lastPosition|isLooping|activePlaylistName
+void PlayerGUI::save(const std::string& path) {
+	std::string line;
+	std::ifstream in(path);
+	if (!in) {
+		return;
+	}
+	std::string result;
+	while (std::getline(in,line)) {
+		std::string title, artist, path, url, thumbnailFile, thumbnailUrl, duration, lastVolume, lastPosition, isLooping, activePlaylistName;
+		if (line.empty()) continue;
+		std::string Line = line;
+		// title
+		int i = line.find('|');
+		title = line.substr(0, i);
+		line = line.substr(i + 1);
+		// artist
+		i = line.find('|');
+		artist = line.substr(0, i);
+		line = line.substr(i + 1);
+		// path
+		i = line.find('|');
+		path = line.substr(0, i);
+		line = line.substr(i + 1);
+		// url
+		i = line.find('|');
+		url = line.substr(0, i);
+		line = line.substr(i + 1);
+		// thumbnailFile
+		i = line.find('|');
+		thumbnailFile = line.substr(0, i);
+		line = line.substr(i + 1);
+		// thumbnailUrl
+		i = line.find('|');
+		thumbnailUrl = line.substr(0, i);
+		line = line.substr(i + 1);
+		// duration
+		i = line.find('|');
+		duration = line.substr(0, i);
+		line = line.substr(i + 1);
+		// lastVolume
+		i = line.find('|');
+		lastVolume = line.substr(0, i);
+		line = line.substr(i + 1);
+		// lastPosition
+		i = line.find('|');
+		lastPosition = line.substr(0, i);
+		line = line.substr(i + 1);
+		// isLooping
+		i = line.find('|');
+		isLooping = line.substr(0, i);
+		line = line.substr(i + 1);
+		// activePlaylistName
+		activePlaylistName = line;
+
+		if (this->control->getFileSource().toStdString() == path) continue;
+		result += Line;
+	}
+	in.close();
+	std::ofstream out(path);
+	out << control->getTitle() << '|' << control->getName() << '|' << this->control->getFileSource() << '|' << "" << '|' << "" << '|'
+		<< '|' << control->getDuration() << '|' << lastVal << '|' << this->control->getCurrentPosition() << '|' << control->isLooping() << '|'
+		<< this->control->getCurrentPlaylistName() << '\n';
+	out << result;
+	out.close();
+}
+
+void PlayerGUI::setAll(float lastVolume, float lastPosition, bool loop) {
+	volumeSlider.setValue(lastVolume);
+	control->setPosition(lastPosition);
+	control->setLooping(loop);
+	sliderValueChanged(&volumeSlider);
+	if (control->isLooping() == 0)
+	{
+		repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x84"));
+	}
+	else if(control->isLooping() == 1)
+	{
+		repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x82"));
+	}
+	else if(control->isLooping() == 2) {
+		repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x81"));
+	}
+	else {
+		repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x80"));
+	}
+	playButton.setButtonText(juce::String::fromUTF8("\xE2\x96\xB6"));
+	stoped = true;
+	twoGUIs = false;
+	control->stop();
+	positionSlider.setValue(lastPosition);
 }

@@ -1,5 +1,6 @@
 #include "LibraryPage.h"
 #include <fstream>
+#include <sstream>
 
 //==============================================================================
 // STATIC MEMBER INITIALIZATION
@@ -12,6 +13,17 @@ const std::map<std::string, LibraryPage::ThemeColors> LibraryPage::ThemeColorMap
 		{"background_bottom", juce::Colour::fromRGB(0x23, 0x23, 0x3d)},
 		{"text_color", juce::Colours::white},
 		{"list_bg", juce::Colour::fromRGBA(0x00, 0x00, 0x00, 0x20)},
+		{"topbar_top", juce::Colour::fromRGB(0x60, 0x5e, 0x5e).withAlpha(0.55f)},
+		{"topbar_bottom", juce::Colour::fromRGB(0x30, 0x00, 0x5d)},
+		{"leftbar_top", juce::Colour::fromRGB(0x33, 0x05, 0x49).withAlpha(0.55f)},
+		{"leftbar_bottom", juce::Colour::fromRGB(0x21, 0x00, 0x32)},
+		{"logo_top", juce::Colour::fromRGB(0x4E, 0x09, 0x84).withAlpha(0.55f)},
+		{"logo_bottom", juce::Colour::fromRGB(0x08, 0x00, 0x29)},
+		{"search_text", juce::Colours::white},
+		{"search_bg", juce::Colour::fromRGB(0x1A, 0x1A, 0x1A)},
+		{"button_bg_normal", juce::Colour::fromRGB(0x45, 0x45, 0x45)},
+		{"button_bg_hover", juce::Colour::fromRGB(0x60, 0x60, 0x60)},
+		{"button_bg_active", juce::Colour::fromRGB(0x00, 0x78, 0xD4)},
 		}},
 		{"Light", {
 		// BACKGROUNDS & BARS
@@ -19,7 +31,86 @@ const std::map<std::string, LibraryPage::ThemeColors> LibraryPage::ThemeColorMap
 		{"background_bottom", juce::Colour::fromRGB(0xEE, 0xEE, 0xEE)},
 		{"text_color", juce::Colours::black},
 		{"list_bg", juce::Colour::fromRGBA(0xFF, 0xFF, 0xFF, 0x60)},
+		{"topbar_top", juce::Colour::fromRGB(0xE0, 0xE0, 0xE0).withAlpha(0.7f)},
+		{"topbar_bottom", juce::Colour::fromRGB(0xC0, 0xC0, 0xC0)},
+		{"leftbar_top", juce::Colour::fromRGB(0xF0, 0xF0, 0xF0).withAlpha(0.7f)},
+		{"leftbar_bottom", juce::Colour::fromRGB(0xD8, 0xD8, 0xD8)},
+		{"logo_top", juce::Colour::fromRGB(0x00, 0x78, 0xD4).withAlpha(0.7f)},
+		{"logo_bottom", juce::Colour::fromRGB(0xE0, 0xE0, 0xE0)},
+		{"search_text", juce::Colours::black},
+		{"search_bg", juce::Colours::white},
+		{"button_bg_normal", juce::Colour::fromRGB(0xF0, 0xF0, 0xF0)},
+		{"button_bg_hover", juce::Colour::fromRGB(0xE0, 0xE0, 0xE0)},
+		{"button_bg_active", juce::Colour::fromRGB(0x00, 0x78, 0xD4)}
 		}}
+};
+
+#define AR_SGL juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd8\xb3\xd8\xac\xd9\x84")
+#define AR_AD juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd8\xa7\xd8\xb9\xd8\xaf\xd8\xa7\xd8\xaf\xd8\xa7\xd8\xaa")
+#define AR_AGANI juce::String::fromUTF8("\xd8\xac\xd9\x85\xd9\x8a\xd8\xb9 \xd8\xa7\xd9\x84\xd8\xa3\xd8\xba\xd8\xa7\xd9\x86\xd9\x8a")
+#define AR_BA juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd8\xa8\xd8\xad\xd8\xab")
+#define AR_MKTBA juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd9\x83\xd8\xaa\xd8\xa8\xd8\xa9")
+#define AR_MF juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd9\x81\xd8\xb6\xd9\x84\xd8\xa9")
+#define AR_QAEMA juce::String::fromUTF8("\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xaa\xd9\x8a")
+#define AR_TD juce::String::fromUTF8("\xd8\xaa\xd8\xb9\xd8\xaf\xd9\x8a\xd9\x84")
+#define AR_NORES juce::String::fromUTF8("\xd9\x84\xd8\xa7 \xd8\xaa\xd9\x88\xd8\xac\xd8\xaf \xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac \xd9\x84\xd9\x84\xd8\xa8\xd8\xad\xd8\xab \xd8\xb9\xd9\x86")
+#define AR_CLOSE juce::String::fromUTF8("\xd8\xa7\xd8\xba\xd9\x84\xd8\xa7\xd9\x82")
+#define AR_MTHR juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd8\xb8\xd9\x87\xd8\xb1:")
+#define AR_LGHA juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x84\xd8\xba\xd8\xa9")
+#define AR_DARK juce::String::fromUTF8("\xd8\xaf\xd8\xa7\xd9\x83\xd9\x86")
+#define AR_LIGHT juce::String::fromUTF8("\xd8\xb3\xd8\xa7\xd8\xb7\xd8\xb9")
+#define AR_ARABIC juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd8\xb9\xd8\xb1\xd8\xa8\xd9\x8a\xd8\xa9")
+#define AR_FAV juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd9\x81\xd8\xb6\xd9\x84\xd8\xa9")
+#define AR_HOME juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xa9 \xd8\xa7\xd9\x84\xd8\xb1\xd8\xa6\xd9\x8a\xd8\xb3\xd9\x8a\xd8\xa9")
+#define AR_PLAYLIST juce::String::fromUTF8("\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xa9 \xd8\xa7\xd9\x84\xd8\xaa\xd8\xb4\xd8\xba\xd9\x8a\xd9\x84")
+#define AR_MYLIST juce::String::fromUTF8("\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xaa\xd9\x8a")
+#define AR_RECENT juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd9\x81\xd8\xaa\xd9\x88\xd8\xad \xd9\x85\xd8\xa4\xd8\xae\xd8\xb1\xd8\xa7")
+
+const std::map<juce::String, LibraryPage::LanguagesMap> LibraryPage::LanguageMap = {
+	{ "English", {
+		{AR_SGL, "Logs"},
+		{AR_FAV,			 "Favorite"},
+		{AR_HOME,			 "Home"},
+		{AR_AD, "Settings"},
+		{AR_AGANI, "All Songs"},
+		{AR_BA, "Search"},
+		{AR_MKTBA, "Library"},
+		{AR_MF, "Favorites"},
+		{AR_QAEMA, "My List"},
+		{AR_TD, "Edit"},
+		{AR_NORES, "No results found for"},
+		{AR_CLOSE, "Close"},
+		{AR_MTHR, "Theme:"},
+		{AR_LGHA, "Language"},
+		{AR_DARK, "Dark"},
+		{AR_LIGHT, "Light" },
+		{AR_ARABIC, "Arabic"},
+		{AR_PLAYLIST, "Playlist"},
+		{AR_MYLIST, "Mylist"},
+		{AR_RECENT, "Recent"}
+	}},
+	{ "Arabic", {
+		{"Logs", AR_SGL},
+		{"Favorite", AR_FAV},
+		{"Home", AR_HOME},
+		{"Settings", AR_AD},
+		{"All Songs", AR_AGANI},
+		{"Search", AR_BA},
+		{"Library", AR_MKTBA},
+		{"Favorites", AR_MF},
+		{"My List", AR_QAEMA},
+		{"Edit", AR_TD},
+		{"No results found for", AR_NORES},
+		{"Close", AR_CLOSE},
+		{"Theme:", AR_MTHR},
+		{"Language", AR_LGHA},
+		{"Dark", AR_DARK},
+		{"Light", AR_LIGHT},
+		{"Arabic", AR_ARABIC},
+		{"Playlist", AR_PLAYLIST},
+		{"Mylist", AR_MYLIST},
+		{"Recent", AR_RECENT},
+	}}
 };
 
 //==============================================================================
@@ -80,7 +171,7 @@ void SongListModel::paintListBoxItem(int rowNumber, juce::Graphics& g,
 		g.fillRect(thumbArea);
 		g.setColour(rowTextColor);
 		g.setFont(thumbArea.getHeight() * 0.6f);
-		g.drawText(JUCE_T("\xe2\x99\xab"), thumbArea, juce::Justification::centred); // Music note
+		g.drawText(juce::String::fromUTF8("\xe2\x99\xab"), thumbArea, juce::Justification::centred);
 	}
 
 	g.setColour(rowIsSelected ? juce::Colours::white : rowTextColor);
@@ -89,11 +180,11 @@ void SongListModel::paintListBoxItem(int rowNumber, juce::Graphics& g,
 	// Layout with Favorite Icon
 	auto favoriteArea = bounds.removeFromRight(height); // Square area for heart
 	auto durationWidth = (int)(width * 0.15);
-	auto thumbnailWidth = height;
 	auto durationArea = bounds.removeFromRight(durationWidth);
-	// Adjust title width calculation to account for thumbnail, duration, and favorite
-	auto titleArea = bounds.removeFromLeft((int)((width - thumbnailWidth - durationWidth - favoriteArea.getWidth()) * 0.65));
-	auto artistArea = bounds;
+
+	int remainingWidth = bounds.getWidth();
+	auto titleArea = bounds.removeFromLeft((int)(remainingWidth * 0.55)); // Title 55% of remaining
+	auto artistArea = bounds; // Artist gets the rest
 
 	// Draw Title
 	g.drawText(song.title, titleArea.reduced(5, 0), juce::Justification::centredLeft, true);
@@ -109,12 +200,12 @@ void SongListModel::paintListBoxItem(int rowNumber, juce::Graphics& g,
 	if (song.isFavorite)
 	{
 		g.setColour(juce::Colours::red);
-		g.drawText(JUCE_T("\xe2\x99\xa5"), favoriteArea, juce::Justification::centred); // Filled heart
+		g.drawText(juce::String::fromUTF8("\xE2\x99\xA5"), favoriteArea, juce::Justification::centred);
 	}
 	else
 	{
 		g.setColour(rowIsSelected ? juce::Colours::white.withAlpha(0.7f) : rowTextColor.withAlpha(0.7f));
-		g.drawText(JUCE_T("\xe2\x99\xa1"), favoriteArea, juce::Justification::centred); // Empty heart
+		g.drawText(juce::String::fromUTF8("\xE2\x99\xA1"), favoriteArea, juce::Justification::centred);
 	}
 
 
@@ -201,7 +292,7 @@ void PlaylistListModel::paintListBoxItem(int rowNumber, juce::Graphics& g,
 		g.fillRect(thumbArea);
 		g.setColour(rowTextColor);
 		g.setFont(thumbArea.getHeight() * 0.6f);
-		g.drawText(JUCE_T("\xe2\x96\xa4"), thumbArea, juce::Justification::centred); // Playlist icon
+		g.drawText(juce::String::fromUTF8("\xe2\x96\xa4"), thumbArea, juce::Justification::centred);
 	}
 
 	// Draw Favorite Icon
@@ -225,12 +316,12 @@ void PlaylistListModel::paintListBoxItem(int rowNumber, juce::Graphics& g,
 	if (playlist.isFavorite)
 	{
 		g.setColour(juce::Colours::red);
-		g.drawText(JUCE_T("\xe2\x99\xa5"), favoriteArea, juce::Justification::centred); // Filled heart
+		g.drawText(juce::String::fromUTF8("\xE2\x99\xA5"), favoriteArea, juce::Justification::centred);
 	}
 	else
 	{
 		g.setColour(rowIsSelected ? juce::Colours::white.withAlpha(0.7f) : rowTextColor.withAlpha(0.7f));
-		g.drawText(JUCE_T("\xe2\x99\xa1"), favoriteArea, juce::Justification::centred); // Empty heart
+		g.drawText(juce::String::fromUTF8("\xE2\x99\xA1"), favoriteArea, juce::Justification::centred);
 	}
 
 	g.setColour(rowTextColor.withAlpha(0.2f));
@@ -239,25 +330,39 @@ void PlaylistListModel::paintListBoxItem(int rowNumber, juce::Graphics& g,
 
 void PlaylistListModel::listBoxItemClicked(int row, const juce::MouseEvent& e)
 {
-	// Get the bounds of the row. We know the row height is 60.
 	auto rowBounds = juce::Rectangle<int>(0, 0, e.eventComponent->getWidth(), 60);
-	// The favorite area is a square on the right side, with height 60
 	auto favoriteArea = rowBounds.removeFromRight(60);
 
 	if (favoriteArea.contains(e.getPosition()))
 	{
-		// Click was on the heart, notify the main LibraryPage
-		// ownerPage.togglePlaylistFavoriteStatus(row); // This function is NOT in the new header.
+		ownerPage.togglePlaylistFavoriteStatus(row);
 	}
 	else
 	{
-		// Click was elsewhere
+		ownerPage.ClickedPlaylist(playlistList[row].name);
 	}
 }
 
 //==============================================================================
 // LIBRARY PAGE
 //==============================================================================
+
+juce::String LibraryPage::getTranslatedText(const juce::String& englishKey)
+{
+	const std::string& currentLangKey = (LanguageMap.count(currentLanguage) > 0) ? currentLanguage : "English";
+
+	const auto& targetMap = LanguageMap.at(currentLangKey);
+
+	if (targetMap.count(englishKey.toStdString()))
+		return targetMap.at(englishKey.toStdString());
+
+	const auto& englishMap = LanguageMap.at("English");
+	if (englishMap.count(englishKey.toStdString()))
+		return englishMap.at(englishKey.toStdString());
+
+	return englishKey;
+}
+
 
 LibraryPage::LibraryPage(const std::string& themeColor, const std::string& language, const juce::String& songFile, const juce::String& playlistFile)
 	: currentTheme(themeColor), currentLanguage(language), songFile(songFile), playlistFile(playlistFile)
@@ -269,6 +374,7 @@ LibraryPage::LibraryPage(const std::string& themeColor, const std::string& langu
 		loadPlaylistDataFromFile();
 
 	// Setup Song List
+	songsHeader.setText(getTranslatedText("All Songs"), juce::dontSendNotification); // Set initial text
 	songsHeader.setFont(juce::Font(24.0f, juce::Font::bold));
 	songsHeader.setJustificationType(juce::Justification::centredLeft);
 	addAndMakeVisible(songsHeader);
@@ -276,7 +382,7 @@ LibraryPage::LibraryPage(const std::string& themeColor, const std::string& langu
 	// Setup Column Headers
 	auto setupHeaderLabel = [&](juce::Label& label, const juce::String& text)
 		{
-			label.setText(text, juce::dontSendNotification);
+			label.setText(getTranslatedText(text), juce::dontSendNotification); // Set initial text
 			label.setFont(juce::Font(14.0f, juce::Font::bold));
 			label.setJustificationType(juce::Justification::centredLeft);
 			addAndMakeVisible(label);
@@ -295,6 +401,7 @@ LibraryPage::LibraryPage(const std::string& themeColor, const std::string& langu
 	addAndMakeVisible(songListBox);
 
 	// Setup Playlist List
+	playlistsHeader.setText(getTranslatedText("Playlists"), juce::dontSendNotification); // Set initial text
 	playlistsHeader.setFont(juce::Font(24.0f, juce::Font::bold));
 	playlistsHeader.setJustificationType(juce::Justification::centredLeft);
 	addAndMakeVisible(playlistsHeader);
@@ -386,6 +493,12 @@ void LibraryPage::themeSettingChanged(const juce::String& newThemeName)
 	songListBox.setColour(juce::ListBox::backgroundColourId, listBg);
 	playlistListBox.setColour(juce::ListBox::backgroundColourId, listBg);
 
+	// NOTE: Setting ListBox outlines for theme consistency
+	juce::Colour outlineColor = textColor.withAlpha(0.2f);
+	songListBox.setColour(juce::ListBox::outlineColourId, outlineColor);
+	playlistListBox.setColour(juce::ListBox::outlineColourId, outlineColor);
+
+
 	if (songModel) songModel->setRowTextColor(textColor);
 
 	if (playlistModel) playlistModel->setRowTextColor(textColor);
@@ -400,6 +513,40 @@ void LibraryPage::themeSettingChanged(const juce::String& newThemeName)
 void LibraryPage::languageSettingChanged(const juce::String& newLanguageName)
 {
 	currentLanguage = newLanguageName.toStdString();
+
+	const std::string& langKey = (LibraryPage::LanguageMap.count(currentLanguage) > 0)
+		? currentLanguage
+		: "English";
+
+	const auto& targetLangMap = LibraryPage::LanguageMap.at(langKey);
+
+
+	auto getTranslatedText = [&](const juce::String& sourceText) -> juce::String {
+
+		if (targetLangMap.count(sourceText.toStdString()))
+			return targetLangMap.at(sourceText.toStdString());
+
+		const auto& englishSourceMap = LibraryPage::LanguageMap.at("English");
+		if (englishSourceMap.count(sourceText.toStdString()))
+		{
+			return englishSourceMap.at(sourceText.toStdString());
+		}
+
+		if (sourceText == "Search" && langKey == "Arabic")
+			return AR_BA;
+
+		return sourceText;
+		};
+
+	songsHeader.setText(getTranslatedText("All Songs"), juce::dontSendNotification);
+	playlistsHeader.setText(getTranslatedText("Playlists"), juce::dontSendNotification);
+	titleHeader.setText(getTranslatedText("Title"), juce::dontSendNotification);
+	artistHeader.setText(getTranslatedText("Artist"), juce::dontSendNotification);
+	durationHeader.setText(getTranslatedText("Duration"), juce::dontSendNotification);
+
+	songListBox.repaint();
+	playlistListBox.repaint();
+
 	repaint();
 }
 
@@ -412,25 +559,205 @@ void LibraryPage::toggleFavoriteStatus(int rowNumber)
 	if (rowNumber < 0 || rowNumber >= songs.size())
 		return;
 
-	saveSongDataToFile();
-
 	songs.getReference(rowNumber).isFavorite = !songs[rowNumber].isFavorite;
 
 	songListBox.repaintRow(rowNumber);
 
 	saveSongDataToFile();
-	removeSongfromFavorite();
+
+	syncFavoritesToFile();
+	
+	syncLibraryToFile();
+
 	loadSongDataFromFile();
-	songListBox.repaint();
+
+}
+
+void LibraryPage::syncFavoritesToFile()
+{
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+	juce::File favoritesFile = exeFolder.getChildFile("FavoritSong.txt");
+
+	std::ostringstream newFavoritesContent;
+
+	for (const auto& song : songs)
+	{
+		if (song.isFavorite)
+		{
+			juce::StringArray parts;
+			parts.add(song.title);
+			parts.add(song.artist);
+
+			if (song.url.isNotEmpty()) parts.add(song.url);
+			else parts.add(song.filePath.getFullPathName());
+
+			if (song.thumbnailUrl.isNotEmpty()) parts.add(song.thumbnailUrl);
+			else parts.add(song.thumbnailFile.getFullPathName());
+
+			parts.add(song.duration);
+			parts.add("true");
+
+			newFavoritesContent << parts.joinIntoString("|").toStdString() << "\n";
+		}
+	}
+	favoritesFile.replaceWithText(newFavoritesContent.str());
+}
+
+void LibraryPage::syncLibraryToFile()
+{
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+	juce::File libraryFile = exeFolder.getChildFile("List.txt");
+	juce::File favoritesFile = exeFolder.getChildFile("FavoritSong.txt");
+
+	if (!libraryFile.existsAsFile() || !favoritesFile.existsAsFile())
+		return;
+
+	juce::String libraryContent = libraryFile.loadFileAsString();
+	juce::StringArray libraryLines;
+	libraryLines.addLines(libraryContent);
+
+	std::set<juce::String> mainSongKeys;
+	for (const auto& song : songs)
+	{
+		mainSongKeys.insert(song.title + "|" + song.artist);
+	}
+
+	juce::String favContent = favoritesFile.loadFileAsString();
+	juce::StringArray favLines;
+	favLines.addLines(favContent);
+
+	for (int i = 0; i < libraryLines.size(); ++i)
+	{
+		juce::String line = libraryLines[i].trim();
+		if (line.isEmpty()) continue;
+
+		juce::StringArray parts;
+		parts.addTokens(line, "|", "");
+
+		if (parts.size() < 6) continue;
+
+		juce::String key = parts[0] + "|" + parts[1];
+
+		bool isInFav = false;
+		for (const auto& favLine : favLines)
+		{
+			juce::StringArray favParts;
+			favParts.addTokens(favLine, "|", "");
+			if (favParts.size() >= 6 && (favParts[0] + "|" + favParts[1]) == key)
+			{
+				isInFav = true;
+				break;
+			}
+		}
+
+		if (mainSongKeys.find(key) == mainSongKeys.end() || !isInFav)
+		{
+			parts.set(5, "false");
+			libraryLines.set(i, parts.joinIntoString("|"));
+		}
+	}
+
+	libraryFile.replaceWithText(libraryLines.joinIntoString("\n"));
+}
+
+void LibraryPage::togglePlaylistFavoriteStatus(int rowNumber)
+{
+	if (rowNumber < 0 || rowNumber >= playlists.size())
+		return;
+
+	playlists.getReference(rowNumber).isFavorite = !playlists[rowNumber].isFavorite;
+
+	playlistListBox.repaintRow(rowNumber);
+
+	savePlaylistDataToFile();
+
+	syncFavoritePlaylistsToFile();
+
+	syncLibraryPlaylistToFile();
+
+	loadPlaylistDataFromFile();
+}
+
+void LibraryPage::syncFavoritePlaylistsToFile()
+{
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+	juce::File favoritesFile = exeFolder.getChildFile("FavoritPlaylist.txt");
+
+	std::ostringstream newFavoritesContent;
+
+	for (const auto& playlist : playlists)
+	{
+		if (playlist.isFavorite)
+		{
+			juce::StringArray parts;
+			parts.add(playlist.name);
+			parts.add(juce::String(playlist.songCount));
+
+			if (playlist.thumbnailUrl.isNotEmpty()) parts.add(playlist.thumbnailUrl);
+			else parts.add(playlist.thumbnailFile.getFullPathName());
+
+			parts.add("true");
+
+			newFavoritesContent << parts.joinIntoString("|").toStdString() << "\n";
+		}
+	}
+	favoritesFile.replaceWithText(newFavoritesContent.str());
+}
+
+void LibraryPage::syncLibraryPlaylistToFile()
+{
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+	juce::File libraryFile = exeFolder.getChildFile("PLayList.txt");
+	juce::File favoritesFile = exeFolder.getChildFile("FavoritPlaylist.txt");
+
+	if (!libraryFile.existsAsFile() || !favoritesFile.existsAsFile())
+		return;
+
+	juce::String libraryContent = libraryFile.loadFileAsString();
+	juce::StringArray libraryLines;
+	libraryLines.addLines(libraryContent);
+
+	juce::String favContent = favoritesFile.loadFileAsString();
+	juce::StringArray favLines;
+	favLines.addLines(favContent);
+
+	for (int i = 0; i < libraryLines.size(); ++i)
+	{
+		juce::String line = libraryLines[i].trim();
+		if (line.isEmpty()) continue;
+
+		juce::StringArray parts;
+		parts.addTokens(line, "|", "");
+		if (parts.size() < 4) continue;
+
+		juce::String playlistName = parts[0];
+		bool isInFav = false;
+
+		for (const auto& favLine : favLines)
+		{
+			juce::StringArray favParts;
+			favParts.addTokens(favLine, "|", "");
+			if (favParts.size() >= 4 && favParts[0] == playlistName)
+			{
+				isInFav = true;
+				break;
+			}
+		}
+
+		parts.set(3, isInFav ? "true" : "false");
+		libraryLines.set(i, parts.joinIntoString("|"));
+	}
+
+	libraryFile.replaceWithText(libraryLines.joinIntoString("\n"));
 }
 
 void LibraryPage::saveSongDataToFile()
 {
-	std::ofstream file(songFile.toStdString());
-	if (!file.is_open())
-	{
-		return;
-	}
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+	juce::File file = exeFolder.getChildFile(songFile);
+
+	std::ofstream out(file.getFullPathName().toStdString());
+	if (!out.is_open()) return;
 
 	for (const auto& song : songs)
 	{
@@ -451,131 +778,37 @@ void LibraryPage::saveSongDataToFile()
 		parts.add(song.duration);
 		parts.add(song.isFavorite ? "true" : "false");
 
-		file << parts.joinIntoString("|").toStdString() << "\n";
+		out << parts.joinIntoString("|").toStdString() << "\n";
 	}
-
-	file.close();
+	out.close();
 }
 
-void LibraryPage::removeSongfromFavorite()
+// Name|Songs|URL|Favourite
+void LibraryPage::savePlaylistDataToFile()
 {
-	juce::Array<SongData> currentFavorites;
-	juce::File favoritesFile("FavoritSong.txt");
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+	juce::File file = exeFolder.getChildFile(playlistFile);
 
-	if (favoritesFile.existsAsFile())
-	{
-		juce::String fileContent = favoritesFile.loadFileAsString();
-		juce::String currentLine;
+	std::ofstream out(file.getFullPathName().toStdString());
+	if (!out.is_open()) return;
 
-		while (fileContent.isNotEmpty())
-		{
-			int newlinePos = fileContent.indexOfChar('\n');
-			if (newlinePos < 0) {
-				currentLine = fileContent.trim();
-				fileContent = {};
-			}
-			else {
-				currentLine = fileContent.substring(0, newlinePos).trim();
-				fileContent = fileContent.substring(newlinePos + 1);
-			}
-
-			if (currentLine.trim().isEmpty()) continue;
-
-			juce::StringArray parts;
-			parts.addTokens(currentLine, "|", "");
-
-			if (parts.size() >= 3)
-			{
-				SongData loadedSong;
-				loadedSong.title = parts[0].trim();
-				loadedSong.artist = parts[1].trim();
-
-				juce::String source = parts[2].trim();
-				if (source.startsWithIgnoreCase("http://") || source.startsWithIgnoreCase("https://"))
-					loadedSong.url = source;
-				else
-					loadedSong.filePath = juce::File(source);
-
-				if (parts.size() >= 4)
-				{
-					juce::String thumbSource = parts[3].trim();
-					if (thumbSource.startsWithIgnoreCase("http://") || thumbSource.startsWithIgnoreCase("https://"))
-						loadedSong.thumbnailUrl = thumbSource;
-					else
-						loadedSong.thumbnailFile = juce::File(thumbSource);
-				}
-				if (parts.size() >= 5)
-					loadedSong.duration = parts[4].trim();
-
-				if (loadedSong.title.isNotEmpty())
-				{
-					currentFavorites.add(loadedSong);
-				}
-			}
-		}
-	}
-
-	for (const auto& song : songs)
-	{
-		bool alreadyInFavorites = false;
-		int indexInFavorites = -1;
-		for (int i = 0; i < currentFavorites.size(); ++i)
-		{
-			if (currentFavorites[i].title == song.title)
-			{
-				alreadyInFavorites = true;
-				indexInFavorites = i;
-				break;
-			}
-		}
-
-		if (song.isFavorite)
-		{
-			if (!alreadyInFavorites)
-			{
-				currentFavorites.add(song);
-			}
-		}
-		else
-		{
-			if (alreadyInFavorites)
-			{
-				currentFavorites.remove(indexInFavorites);
-			}
-		}
-	}
-
-	std::ofstream file(favoritesFile.getFullPathName().toStdString());
-	if (!file.is_open())
-	{
-		return;
-	}
-
-	for (const auto& song : currentFavorites)
+	for (const auto& playlist : playlists)
 	{
 		juce::StringArray parts;
-		parts.add(song.title);
-		parts.add(song.artist);
+		parts.add(playlist.name);
+		parts.add(juce::String(playlist.songCount));
 
-		if (song.url.isNotEmpty()) parts.add(song.url);
-		else parts.add(song.filePath.getFullPathName());
+		if (playlist.thumbnailUrl.isNotEmpty())
+			parts.add(playlist.thumbnailUrl);
+		else
+			parts.add(playlist.thumbnailFile.getFullPathName());
 
-		if (song.thumbnailUrl.isNotEmpty()) parts.add(song.thumbnailUrl);
-		else parts.add(song.thumbnailFile.getFullPathName());
+		parts.add(playlist.isFavorite ? "true" : "false");
 
-		parts.add(song.duration);
-		parts.add("true");
-
-		file << parts.joinIntoString("|").toStdString() << "\n";
+		out << parts.joinIntoString("|").toStdString() << "\n";
 	}
-
-	file.close();
+	out.close();
 }
-
-
-//==============================================================================
-// FILE LOADING IMPLEMENTATION
-//==============================================================================
 
 // Reads song data from List.txt (Title | Artist | SourcePath/URL | ThumbnailSource | Duration | isFavorite)
 void LibraryPage::loadSongDataFromFile()
@@ -585,7 +818,9 @@ void LibraryPage::loadSongDataFromFile()
 		return;
 	}
 	songs.clear();
-	juce::File libraryFile(this->songFile);
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+
+	juce::File libraryFile(exeFolder.getChildFile(this->songFile));
 
 	if (libraryFile.existsAsFile())
 	{
@@ -666,7 +901,9 @@ void LibraryPage::loadSongDataFromFile()
 void LibraryPage::loadPlaylistDataFromFile()
 {
 	playlists.clear();
-	juce::File playlistFile(this->playlistFile);
+	juce::File exeFolder = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory();
+
+	juce::File playlistFile(exeFolder.getChildFile(this->playlistFile));
 
 	if (playlistFile.existsAsFile())
 	{

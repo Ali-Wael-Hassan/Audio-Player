@@ -28,9 +28,11 @@ public:
 
 private:
     // Audio
-    PlayerAudio* audio;
+    PlayerAudio* audio1;
+    PlayerAudio* audio2;
 
-    PlayerGUI* GUI;
+    PlayerGUI* GUI1;
+    PlayerGUI* GUI2;
 
     Home* home;
 

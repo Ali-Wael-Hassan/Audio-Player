@@ -77,10 +77,13 @@ public:
 		public:
 			~Listener() = default;
 			virtual void loadSong(juce::String source) = 0;
+			virtual void loadPlaylist(juce::String name) = 0;
 	};
 
 	using ThemeColors = std::map<std::string, juce::Colour>;
+	using LanguagesMap = std::map<juce::String, juce::String>;
 	static const std::map<std::string, ThemeColors> ThemeColorMap;
+	static const std::map<juce::String, LanguagesMap> LanguageMap;
 
 	LibraryPage(const std::string& themeColor, const std::string& language, const juce::String& songFile, const juce::String& playlistFile);
 	~LibraryPage() override = default;
@@ -92,23 +95,33 @@ public:
 	void languageSettingChanged(const juce::String& newLanguageName);
 
 	void toggleFavoriteStatus(int row);
+	void togglePlaylistFavoriteStatus(int row);
 
 	void setListener(Listener* l) { listen = l; }
 
 	void ClickedSong(juce::String source) { listen->loadSong(source); }
+	void ClickedPlaylist(juce::String name) { listen->loadPlaylist(name); }
 
 	void loadSongDataFromFile();
 	void loadPlaylistDataFromFile();
 	void saveSongDataToFile();
-	void removeSongfromFavorite();
+	void savePlaylistDataToFile();
+	void syncFavoritesToFile();
+	void syncLibraryToFile();
+	void syncFavoritePlaylistsToFile();
+	void syncLibraryPlaylistToFile();
+
 
 private:
+	juce::String getTranslatedText(const juce::String& englishKey);
+
 	Listener* listen;
 	std::string currentTheme;
 	std::string currentLanguage;
 
 	juce::String songFile;
 	juce::String playlistFile;
+
 
 	juce::Array<SongData> songs;
 	juce::Array<PlaylistData> playlists;

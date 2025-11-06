@@ -15,184 +15,97 @@
 #include "LibraryPage.h"
 #include "PlayerGUI.h"
 
+
+class Home;
+
+struct LastSetion {
+	juce::String lastVolume;
+	juce::String lastPostion;
+	juce::String isLooping;
+	juce::String activePlaylistName;
+	juce::String title;
+	juce::String artist;
+	juce::File filePath;
+	juce::String url;
+	juce::File thumbnailFile;
+	juce::String thumbnailUrl;
+	juce::String duration;
+};
 //==============================================================================
 // Required Data Structures
 //==============================================================================
 
-// Required for the ListBox to function correctly
-class SearchResultsModel : public juce::ListBoxModel
+class RecentsListModel : public juce::ListBoxModel
 {
 public:
-	SearchResultsModel() = default;
+	RecentsListModel(Home* h);
 
-	// Gets new results then update the ListBox
-	void setResults(const juce::Array<SongData>& newResults)
-	{
-		results = newResults;
-		if (resultsListBox)
-			resultsListBox->updateContent();
-	}
+	void setResults(const juce::Array<LastSetion>& newResults);
 
-	// Allowing communication with other classes(Objects)
 	void setListBox(juce::ListBox* lb) { resultsListBox = lb; }
+	void setRowTextColor(juce::Colour color) { rowTextColor = color; }
 
-	int getNumRows() override
-	{
-		return results.size();
-	}
+	int getNumRows() override { return results.size(); }
 
-	void setRowTextColor(juce::Colour color) {
-		rowTextColor = color;
-	}
+	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
 
-	// Painting the select boxes elemnts (Box1, Box2, ...)
-	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override
-	{
-		if (rowNumber < 0 || rowNumber >= getNumRows()) // Safer check
-			return;
-
-		const auto& song = results.getUnchecked(rowNumber);
-
-		juce::Colour foreground = rowIsSelected ? juce::Colours::black : rowTextColor;
-		juce::Colour background = rowIsSelected ? juce::Colours::cyan.withAlpha(0.7f) : juce::Colours::transparentBlack;
-
-		g.setColour(background);
-		g.fillRect(0, 0, width, height);
-
-		int imageSize = height - 8;
-		juce::Rectangle<int> imageBounds(4, 4, imageSize, imageSize);
-
-		// Area for all text
-		juce::Rectangle<int> mainTextArea(imageBounds.getRight() + 8, 0, width - (imageBounds.getRight() + 12), height);
-
-		// Split text area for duration
-		juce::Rectangle<int> durationArea = mainTextArea.removeFromRight((int)(width * 0.15)); // 15% for duration
-		juce::Rectangle<int> titleArtistArea = mainTextArea; // The rest for title/artist
-
-
-		// Draw Thumbnail
-		if (song.thumbnailFile.existsAsFile())
-		{
-			juce::Image thumbnail = juce::ImageCache::getFromFile(song.thumbnailFile);
-			if (thumbnail.isValid())
-			{
-				g.drawImage(thumbnail, imageBounds.toFloat(), juce::RectanglePlacement::centred);
-			}
-		}
-		else
-		{
-			// Placeholder
-			g.setColour(rowTextColor.withAlpha(0.2f));
-			g.fillRect(imageBounds);
-			g.setColour(rowTextColor);
-			g.setFont(imageBounds.getHeight() * 0.6f);
-			g.drawText(JUCE_T("\xe2\x99\xab"), imageBounds, juce::Justification::centred);
-		}
-
-		// Draw Title & Artist
-		juce::String rowText = song.title + " - " + song.artist;
-		g.setColour(foreground);
-		g.setFont(juce::Font(14.0f));
-		g.drawText(rowText, titleArtistArea, juce::Justification::centredLeft, true);
-
-		// Draw Duration
-		g.setFont(juce::Font(13.0f));
-		g.setColour(foreground.withAlpha(0.7f));
-		g.drawText(song.duration, durationArea, juce::Justification::centredRight, true);
-	}
+	void listBoxItemClicked(int row, const juce::MouseEvent&) override;
 
 private:
-	// Results array for search
-	juce::Array<SongData> results;
-	// UI ListBox for visualizing the data
+	Home* ownerHome;
+	juce::Array<LastSetion> results;
 	juce::ListBox* resultsListBox = nullptr;
-	// for theme
 	juce::Colour rowTextColor = juce::Colours::white;
 };
 
+//==============================================================================
+// Search Results Component
+//==============================================================================
+class SearchResultsModel : public juce::ListBoxModel
+{
+public:
+	SearchResultsModel(Home* home);
+
+	void setResults(const juce::Array<SongData>& newResults);
+	void setListBox(juce::ListBox* lb);
+	void setRowTextColor(juce::Colour color);
+
+	int getNumRows() override;
+	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+	void listBoxItemClicked(int row, const juce::MouseEvent& e) override;
+
+private:
+	Home* ownerHome;
+	juce::Array<SongData> results;
+	juce::ListBox* resultsListBox = nullptr;
+	juce::Colour rowTextColor = juce::Colours::white;
+};
 
 //==============================================================================
 // Search Results View
 //==============================================================================
-
 class SearchResultsComponent : public juce::Component
 {
 public:
-	// Setting the Model of the listBox(Previous), Border and Listener for Model
-	SearchResultsComponent()
-	{
-		resultsListBox.setModel(&resultsModel);
-		resultsListBox.setRowHeight(40);
-		resultsListBox.setOutlineThickness(1);
-		resultsModel.setListBox(&resultsListBox);
+	SearchResultsComponent(Home* home);
 
-		// Make status labels visible
-		statusLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-		resultTitleLabel.setFont(juce::Font(14.0f));
-		resultTitleLabel.setJustificationType(juce::Justification::centredLeft);
+	void resized() override;
 
-		addAndMakeVisible(statusLabel);
-		addAndMakeVisible(resultsListBox);
-		addAndMakeVisible(resultTitleLabel);
-	}
+	void displayResultsArray(const juce::Array<SongData>& newResults, const juce::String& searchTerm);
 
-	// Dynamic resizing to get in multiple windows size
-	void resized() override
-	{
-		auto bounds = getLocalBounds().reduced(10);
-		// Headers
-		statusLabel.setBounds(bounds.removeFromTop(20));
-		resultTitleLabel.setBounds(bounds.removeFromTop(20));
-		// Results details
-		resultsListBox.setBounds(bounds);
-	}
-
-	// Displaying the BoxList(Array)
-	void displayResultsArray(const juce::Array<SongData>& newResults, const juce::String& searchTerm)
-	{
-		// Update results
-		resultsModel.setResults(newResults);
-
-		// Checking if there is something in our data with this name
-		if (newResults.size() > 0)
-		{
-			// Format: Found <Size> matches for "<Search Term>"
-			juce::String status =
-				"Found " + juce::String(newResults.size()) + " matches for \"" + searchTerm + "\"";
-
-			// Updating Label
-			statusLabel.setText(status, juce::dontSendNotification);
-
-			// Show the top result details below the status
-			resultTitleLabel.setText("Top Result: " + newResults.getFirst().title + " - " + newResults.getFirst().artist, juce::dontSendNotification);
-		}
-		else
-		{
-			// If nothing Found
-			statusLabel.setText("No results found for \"" + searchTerm + "\".", juce::dontSendNotification);
-			resultTitleLabel.setText("", juce::dontSendNotification);
-		}
-		// Refresh
-		repaint();
-	}
-
-	// To apply Theme
+	// Accessors
 	juce::ListBox& getListBox() { return resultsListBox; }
 	SearchResultsModel& getListModel() { return resultsModel; }
 	juce::Label& getStatusLabel() { return statusLabel; }
 	juce::Label& getResultTitleLabel() { return resultTitleLabel; }
 
-
 private:
-	// TopBar
 	juce::Label statusLabel;
 	juce::Label resultTitleLabel;
 
-	// ListBox that shows details
 	juce::ListBox resultsListBox;
 	SearchResultsModel resultsModel;
 };
-
 
 //==============================================================================
 // Main Application
@@ -206,21 +119,23 @@ class Home : public juce::Component,
 	public juce::Button::Listener,
 	public SettingsPage::Listener,
 	public juce::TextEditor::Listener,
-	public LibraryPage::Listener
+	public LibraryPage::Listener,
+	public PlayerGUI::Listener
 {
 private:
 	// Theme Colors shortcut
 	using ThemeColors = std::map<std::string, juce::Colour>;
+	using Languages = std::map<juce::String, juce::String>;
 	// static map to live across the application (later will use .json file or .xml)
 	static const std::map<std::string, ThemeColors> ThemeColorMap;
+	static const std::map<juce::String, Languages> LanguageMap;
 
 	// Home Page Layer
 	juce::TextButton tempSuggest{ "Suggest" };
-	juce::TextButton tempAudio1{ "Audio" };
-	juce::TextButton tempAudio2{ "Audio" };
-	juce::TextButton tempAudio3{ "Audio" };
-	juce::TextButton tempAudio4{ "Audio" };
-	juce::TextButton tempAudio5{ "Audio" };
+
+	RecentsListModel recentsModel{ this };
+	juce::ListBox recentsListBox;
+	juce::Array<LastSetion> recentSongs;
 
 	// Labels
 	juce::Label playList{ "Playlist" };
@@ -239,7 +154,6 @@ private:
 	juce::ImageButton homeButton;
 	juce::ImageButton libraryButton;
 	juce::ImageButton favoriteButton;
-	juce::ImageButton listButton;
 	juce::ImageButton editButton;
 
 	// Labels
@@ -247,14 +161,19 @@ private:
 	juce::Label searchText;
 	juce::Label libraryText;
 	juce::Label favoriteText;
-	juce::Label listText;
 	juce::Label editText;
 
 	// For easier Making Visible and changes
 	std::vector<std::pair<juce::String, juce::Label*>> labels = {
-		{"Home", &homeText}, {"Search", &searchText}, {"Library", &libraryText},
-		{"Favorite", &favoriteText}, {"Mylist", &listText}, {"Edit", &editText},
-		{"Settings", &settingsText}, {"Logs", &logsText}, {"Playlist", &playList}, {"Recent", &recent}
+		{"Home", &homeText},
+		{"Search", &searchText},
+		{"Library", &libraryText},
+		{"Favorite", &favoriteText},
+		{"Edit", &editText},
+		{"Settings", &settingsText},
+		{"Logs", &logsText},
+		{"Playlist", &playList},
+		{"Recent", &recent}
 	};
 
 	// Setting state
@@ -278,9 +197,10 @@ private:
 	// Library Page
 	std::unique_ptr<LibraryPage> libraryPage;
 	std::unique_ptr<LibraryPage> favoritePage;
-	std::unique_ptr<LibraryPage> listPage;
-	PlayerGUI* GUI;
-	PlayerAudio* Audio;
+	PlayerGUI* GUI1;
+	PlayerAudio* Audio1;
+	PlayerGUI* GUI2;
+	PlayerAudio* Audio2;
 
 	// HELPER METHODS
 	// Layers
@@ -293,11 +213,44 @@ private:
 	void paintBackgroundGradients(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
 	void paintModalDimmer(juce::Graphics& g, const std::map<std::string, juce::Colour>& themeMap);
 
-	void loadSong(juce::String source) override;
+	void returnToHomePage() override {
+		loadRecentsFromFile();
+		recentsModel.setResults(recentSongs);
+		GUI1->reset();
+		GUI1->setVisible(false);
+		GUI2->reset();
+		GUI2->setVisible(false);
+		resized();
+		repaint();
+		buttonClicked(&homeButton);
+	}
+
+	void twoGUI() override {
+		if (GUI2->isVisible()) {
+			GUI2->reset();
+			GUI2->setVisible(false);
+			GUI1->setBounds(getLocalBounds());
+		}
+		else {
+			GUI2->setVisible(true);
+			auto bounds = getLocalBounds();
+			GUI1->setBounds(bounds.removeFromLeft(bounds.getWidth() / 2));
+			GUI2->setBounds(bounds);
+		}
+	}
+
+	void openSettings() override{
+		isSettingsVisible = !isSettingsVisible;
+		resized();
+		repaint();
+	}
+
 
 public:
+	void loadSong(juce::String source) override;
+	void loadPlaylist(juce::String name) override;
 	// Constructor
-	Home(const std::string& themeColor, const std::string& language, PlayerGUI* GUI, PlayerAudio* Audio);
+	Home(const std::string& themeColor, const std::string& language, PlayerGUI* GUI1, PlayerAudio* Audio1, PlayerGUI* GUI2, PlayerAudio* Audio2);
 	~Home() override = default;
 
 	// UI visuals
@@ -312,4 +265,6 @@ public:
 
 	void loadSongsFromFile(const juce::File& libraryFile);
 	juce::Array<SongData> findSongsByPartialTitle(const juce::String& targetTerm);
+	void loadRecentsFromFile();
+	PlayerGUI* getGUIF() { return GUI1; }
 };
