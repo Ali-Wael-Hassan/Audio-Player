@@ -606,6 +606,15 @@ void PlayerGUI::resized()
 		playlistBox->setBounds(playlistBounds);
 	}
 
+	playlistSelector.setVisible(showPlaylistPanel);
+
+	addToPlaylistButton.setVisible(showPlaylistPanel);
+	removeFromPlaylistButton.setVisible(showPlaylistPanel);
+	savePlaylistButton.setVisible(showPlaylistPanel);
+	addNewPlaylistButton.setVisible(showPlaylistPanel);
+	playlistTitleLabel.setVisible(showPlaylistPanel);
+	playlistBox->setVisible(showPlaylistPanel);
+
 	// ================= Right Panel =================
 	auto rightPanel = mainArea.removeFromRight(180);
 	rightPanel.removeFromTop(30);
@@ -693,8 +702,8 @@ void PlayerGUI::resized()
 		}
 
 		// Layout combo box
-		int comboHeight = 25;
-		int comboWidth = 200; // adjust to fit
+		int comboHeight = 28;
+		int comboWidth = 50; 
 		int comboX = MarkerPanelArea.getRight() - comboWidth - 10;
 		int comboY = MarkerPanelArea.getY() + 10;
 
