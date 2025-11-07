@@ -977,6 +977,7 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 	else if (button == &restartButton) {
 		if (control->audioExist()) {
 			control->restart();
+			playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
 		}
 	}
 	else if (button == &stopButton) {
@@ -1168,7 +1169,7 @@ void PlayerGUI::playBackFinished()
 	if (mode == 1 && control->reachEnd())
 	{
 		control->restart();
-		playButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x82"));
+		playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
 		stoped = false;
 		return;
 	}
@@ -1411,7 +1412,7 @@ void PlayerGUI::reset()
 		if (control->isLooping())
 		{
 			control->toggleLooping();
-			repeatButton.setButtonText(juce::String::fromUTF8("\xE2\x86\xBB"));
+			repeatButton.setButtonText(juce::String::fromUTF8("\xF0\x9F\x94\x84"));
 		}
 	}
 
