@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <fileref.h>
 #include <tag.h>
-#include "PlayerAudioSignal.h"
 #include "PlaylistManager.h"
 
 struct Marker {
