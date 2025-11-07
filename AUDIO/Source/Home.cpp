@@ -56,7 +56,7 @@ const std::map<std::string, Home::ThemeColors> Home::ThemeColorMap = {
 #define AR_MKTBA juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd9\x83\xd8\xaa\xd8\xa8\xd8\xa9")
 #define AR_MF juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd9\x81\xd8\xb6\xd9\x84\xd8\xa9")
 #define AR_QAEMA juce::String::fromUTF8("\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xaa\xd9\x8a")
-#define AR_TD juce::String::fromUTF8("\xd8\xaa\xd8\xb9\xd8\xaf\xd9\x8a\xd9\x84")
+#define AR_TD juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd8\xb4\xd8\xba\xd9\x84")
 #define AR_NORES juce::String::fromUTF8("\xd9\x84\xd8\xa7 \xd8\xaa\xd9\x88\xd8\xac\xd8\xaf \xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac \xd9\x84\xd9\x84\xd8\xa8\xd8\xad\xd8\xab \xd8\xb9\xd9\x86")
 #define AR_CLOSE juce::String::fromUTF8("\xd8\xa7\xd8\xba\xd9\x84\xd8\xa7\xd9\x82")
 #define AR_MTHR juce::String::fromUTF8("\xd8\xa7\xd9\x84\xd9\x85\xd8\xb8\xd9\x87\xd8\xb1:")
@@ -81,7 +81,7 @@ const std::map<juce::String, Home::Languages> Home::LanguageMap = {
 		{AR_MKTBA,            "Library"},
 		{AR_MF,               "Favorites"},
 		{AR_QAEMA,            "My List"},
-		{AR_TD,               "Edit"},
+		{AR_TD,               "Player"},
 		{AR_NORES,            "No results found for"},
 		{AR_CLOSE,            "Close"},
 		{AR_MTHR,             "Theme:"},
@@ -103,7 +103,7 @@ const std::map<juce::String, Home::Languages> Home::LanguageMap = {
 		{"Library",             AR_MKTBA},
 		{"Favorites",           AR_MF},
 		{"My List",             AR_QAEMA},
-		{"Edit",                AR_TD},
+		{"Player",                AR_TD},
 		{"No results found for", AR_NORES},
 		{"Close",               AR_CLOSE},
 		{"Theme:",              AR_MTHR},

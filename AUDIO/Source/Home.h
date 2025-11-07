@@ -172,7 +172,7 @@ private:
 		{"Search", &searchText},
 		{"Library", &libraryText},
 		{"Favorite", &favoriteText},
-		{"Edit", &editText},
+		{"Player", &editText},
 		{"Settings", &settingsText},
 		{"Logs", &logsText},
 		{"Playlist", &playList},
