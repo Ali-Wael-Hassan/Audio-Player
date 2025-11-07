@@ -4,27 +4,34 @@
 #include <fstream>
 #include <map>
 #include <vector>
-using namespace std;
+#include <string>
+#include <sstream>
 
 class PlaylistManager {
 private:
-    map<string, pair<string, string>> playlist;
+    std::map<std::string, std::map<std::string, std::pair<std::string, std::string>>> playlists;
     const std::string ROOT = "front";
+
+    std::string activePlaylist;
+
 public:
-    PlaylistManager(const string& path);
+    PlaylistManager(const std::string& path);
 
-    void load(const string& path);
+    void load(const std::string& path);
+    void save(const std::string& path);
 
-    void save(const string& path);
+    void add(const std::string& song, const std::string& URL);
+    void remove(const std::string& song);
 
-    void add(const string& key, const string& nextSong, const string& nextURL);
+    std::string getNext(const std::string& song);
+    std::string getUrl(const std::string& playlistName, const std::string& song);
 
-    void remove(const string& key);
+    std::vector<std::pair<std::string, std::string>> getSongs(const std::string& playlistName);
 
-    string getNext(const string& key);
+    std::vector<std::string> getPlaylistNames() const;
 
-    string getUrl(const string& key);
+    void setActivePlaylist(const std::string& name);
+    std::string getActivePlaylist() const;
 
-    vector<pair<string, string>> getSongs(const std::string& start_key);
-
+    void createNewPlaylist(const std::string& name);
 };

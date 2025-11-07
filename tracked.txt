@@ -1,0 +1,14 @@
+100644 blob ea3800714b9e1b0dcab82be3f41b141f5d945484     648	.gitignore
+100644 blob 3f77cdf2d50d9e73514876de8a88e1604f8bccfa    3666	AUDIO/NewProject/NewProject.jucer
+100644 blob 320607c13f2bc03301bf057a020a8aaacf3594f6    1321	AUDIO/Source/Main.cpp
+100644 blob 489dfc965276d1a04297f63eb0eaf756d727f855     995	AUDIO/Source/MainComponent.cpp
+100644 blob 85104458fe570e458a2d62aa7c381318b33fb26b     844	AUDIO/Source/MainComponent.h
+100644 blob 2cf8ccb5942745c5e263168f7a8ca5d652be89b7    4666	AUDIO/Source/PlayerAudio.cpp
+100644 blob 60af7b7171f48f31286855609072e4083dac07ea    1828	AUDIO/Source/PlayerAudio.h
+100644 blob 3d14e5041b3f80abc71a753e3a7addae0ffc1ffc     131	AUDIO/Source/PlayerAudioSignal.h
+100644 blob 6fbbf12522ae38271193354201deb2bfde3485e1   17348	AUDIO/Source/PlayerGUI.cpp
+100644 blob 27909876067f0cc20fa52fa4d8af75f6f250dde2    3877	AUDIO/Source/PlayerGUI.h
+100644 blob 06c6b259ecf1cb07b27025764f3923106e817236    2118	AUDIO/Source/PlaylistManager.cpp
+100644 blob 81d53169cb72cf98fdabe9dc9770616a22ef81f9     623	AUDIO/Source/PlaylistManager.h
+100644 blob a60141c49de3d47a4db41c93ccc4e4587853161d       4	PartsEdited
+100644 blob 2007baf80eef374dfdfec70474d9a4c3fa5dd440      14	README.md
