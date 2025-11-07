@@ -105,13 +105,24 @@ void PlayerGUI::initializeControls()
 	// Speed Slider setup
 	// Speed Slider 
 	speedSlider.setSliderStyle(juce::Slider::LinearVertical);
-	speedSlider.setRange(0.1, 2.0, 0.1);
+	speedSlider.setRange(0.1, 2.0, 0.01);
 	speedSlider.setValue(1.0);
 	speedSlider.addListener(this);
+	speedSlider.setTextBoxStyle(juce::Slider::TextBoxAbove, false, 60, 20);
 	speedSlider.setColour(juce::Slider::thumbColourId, juce::Colour::fromRGB(200, 100, 255));
 	speedSlider.setColour(juce::Slider::trackColourId, juce::Colour::fromRGB(100, 200, 255));
 	speedSlider.setColour(juce::Slider::backgroundColourId, juce::Colour::fromRGBA(50, 50, 80, 100));
-	speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+
+	speedSlider.textFromValueFunction = [](double value)
+	{
+		return juce::String(value, 2) + "x";
+	};
+
+	speedSlider.valueFromTextFunction = [](const juce::String& text)
+	{
+		return text.upToFirstOccurrenceOf("x", false, false).getDoubleValue();
+	};
+
 	addAndMakeVisible(speedSlider);
 
 
@@ -159,6 +170,8 @@ void PlayerGUI::initializeControls()
 		};
 
 	addAndMakeVisible(positionSlider);
+	if (control)
+		control->setSignalListener(this); 
 
 	addAndMakeVisible(playlistSelector);
 	playlistSelector.clear(juce::dontSendNotification);
@@ -189,7 +202,135 @@ void PlayerGUI::initializeControls()
 			refreshPlaylist();
 			refreshPlaylistSelector();
 		}
+	};
+
+	auto setupButton = [this](juce::TextButton& button,
+		const juce::String& text,
+		std::function<void()> onClickLambda)
+		{
+			button.setButtonText(text);
+			button.onClick = onClickLambda;
+			addAndMakeVisible(button);
+			button.setVisible(false);
 		};
+
+	setupButton(removeMarker, "Remove Marker", [this]()
+		{
+			int idx = Markers.getSelectedId() - 1;
+			if (idx >= 0 && idx < markers.size())
+			{
+				control->removeMarker(idx);
+				markers = control->getMarkers();
+				Markers.clear();
+				for (int i = 0; i < markers.size(); ++i)
+					Markers.addItem(markers[i].label, i + 1);
+				repaint(waveformArea);
+				repaint();
+			}
+		});
+
+	setupButton(setA, "Set A", [this]()
+		{
+			int idx = Markers.getSelectedId() - 1;
+			if (idx >= 0 && idx < markers.size())
+			{
+				markerA = idx;
+				control->setMarkerA(idx);
+				markers = control->getMarkers();
+				repaint(waveformArea);
+				repaint();
+			}
+		});
+
+	setupButton(setB, "Set B", [this]()
+		{
+			int idx = Markers.getSelectedId() - 1;
+			if (idx >= 0 && idx < markers.size())
+			{
+				markerB = idx;
+				control->setMarkerB(idx);
+				markers = control->getMarkers();
+				repaint(waveformArea);
+				repaint();
+			}
+		});
+
+	setupButton(StartLooping, "Start Looping", [this]()
+		{
+			control->toggleLoopAB();
+			if (control->isMarkerLooping()) {
+				StartLooping.setButtonText("Stop Looping");
+			}
+			else {
+				StartLooping.setButtonText("Start Looping");
+			}
+		});
+
+	setupButton(goToMarker, "Go To", [this]()
+		{
+			int idx = Markers.getSelectedId() - 1;
+			if (idx >= 0 && idx < markers.size())
+				control->goToMarker(markers[idx].position);
+		});
+
+	removeMarker.setVisible(false);
+	setA.setVisible(false);
+	setB.setVisible(false);
+	StartLooping.setVisible(false);
+	goToMarker.setVisible(false);
+
+	addAndMakeVisible(Markers);
+	Markers.setEditableText(false);
+	Markers.setJustificationType(juce::Justification::centredLeft);
+	Markers.setScrollWheelEnabled(true);
+
+	addAndMakeVisible(labelEditor);
+	labelEditor.setText("");
+	labelEditor.setInputRestrictions(50);
+	labelEditor.setVisible(false);
+
+	labelEditor.onReturnKey = [this]()
+	{
+		Labels = labelEditor.getText();
+		int idx = Markers.getSelectedId() - 1;
+		if (idx >= 0 && idx < markers.size())
+		{
+			markers[idx].label = Labels;
+			Markers.clear();
+			for (int i = 0; i < markers.size(); ++i)
+				Markers.addItem(markers[i].label, i + 1);
+
+			if (control != nullptr)
+				control->updateMarker(markers);
+
+			repaint(MarkerPanelArea);
+		}
+	};
+
+	Markers.onChange = [this]()
+		{
+			int idx = Markers.getSelectedId() - 1;
+			if (idx >= 0 && idx < markers.size())
+			{
+				Labels = markers[idx].label;
+				labelEditor.setText(Labels, juce::dontSendNotification);
+				labelEditor.setVisible(true);
+
+				int editorWidth = 150;
+				int editorHeight = 25;
+				labelEditor.setBounds(
+					MarkerPanelArea.getX() + 10,
+					MarkerPanelArea.getBottom() - editorHeight - 5,
+					editorWidth,
+					editorHeight
+				);
+			}
+			else
+			{
+				labelEditor.setVisible(false);
+			}
+		};
+
 	setSize(1400, 600);//حجم الشاشه 
 }
 
@@ -234,6 +375,10 @@ void PlayerGUI::loadSong(juce::String source) {
 		source = control->startNewFromURL(juce::URL(source));
 	}
 
+	markers.clear();
+	Markers.clear();
+	control->updateMarker(markers);
+
 	if (source.isNotEmpty()) {
 		auto file = juce::File(source);
 		control->startNewFromFile(file);
@@ -245,15 +390,19 @@ void PlayerGUI::loadSong(juce::String source) {
 		playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
 		stoped = false;
 	}
+	resized();
+	repaint();
 }
 
 void PlayerGUI::loadPlaylist(juce::String name) {
 	control->getPlaylistManager().setActivePlaylist(name.toStdString());
 	refreshPlaylist();
 	refreshPlaylistSelector();
+	resized();
+	repaint();
 }
 
-//يلا نرسم يلاااااااااااااا😍😍😍
+
 void PlayerGUI::paint(juce::Graphics& g) {
 	// Modern gradient background
 	juce::ColourGradient gradient(
@@ -291,7 +440,7 @@ void PlayerGUI::paint(juce::Graphics& g) {
 	else
 	{
 		g.setColour(juce::Colours::white.withAlpha(0.5f));
-		g.drawText("Loading audio...", waveformArea, juce::Justification::centred);
+		g.drawText("No Track Loaded...", waveformArea, juce::Justification::centred);
 	}
 	// Draw playhead
 	//الخط الاحمر 
@@ -376,13 +525,61 @@ void PlayerGUI::paint(juce::Graphics& g) {
 			g.fillRoundedRectangle(btnBounds, 10.0f);
 		}
 	}
+
+	if (MarkerPanelArea.getWidth() > 0 && MarkerPanelArea.getHeight() > 0)
+	{
+		g.setColour(juce::Colour::fromRGB(60, 40, 120).withAlpha(0.8f));
+		g.fillRoundedRectangle(MarkerPanelArea.toFloat(), 10.0f);
+	}
+
+	if (!markers.empty() && control != nullptr)
+	{
+		double totalLength = thumbnail.getTotalLength();
+		if (totalLength <= 0.0)
+			return;
+
+		for (int i = 0; i < markers.size(); ++i)
+		{
+			auto& m = markers[i];
+
+			int x = waveformArea.getX() + (int)((m.position / totalLength) * waveformArea.getWidth());
+
+			if (m.type == 1) g.setColour(juce::Colours::green);
+			else if (m.type == 2) g.setColour(juce::Colours::red);
+			else g.setColour(juce::Colours::yellow);
+
+			g.drawLine((float)x, (float)waveformArea.getY(), (float)x, (float)waveformArea.getBottom(), 2.0f);
+
+			g.setColour(juce::Colours::white);
+			g.setFont(12.0f);
+			int labelHeight = 20;
+			g.drawText(
+				m.label,
+				x - 50,
+				waveformArea.getY() - 40,
+				100,
+				labelHeight,
+				juce::Justification::centred
+			);
+		}
+
+		if (markerA >= 0 && markerB >= 0 && markerA < markers.size() && markerB < markers.size())
+		{
+			int x1 = waveformArea.getX() + (int)((markers[markerA].position / totalLength) * waveformArea.getWidth());
+			int x2 = waveformArea.getX() + (int)((markers[markerB].position / totalLength) * waveformArea.getWidth());
+
+			g.setColour(juce::Colours::blue.withAlpha(0.3f));
+			g.fillRect(x1, waveformArea.getY(), x2 - x1, waveformArea.getHeight());
+		}
+	}
 }
 
-void PlayerGUI::resized() {
+void PlayerGUI::resized()
+{
 	auto bounds = getLocalBounds();
+	auto mainArea = bounds;
 
-	juce::Rectangle<int> mainArea = bounds;
-
+	// ================= Playlist Panel =================
 	if (showPlaylistPanel)
 	{
 		playlistPanelArea = bounds.removeFromRight(bounds.getWidth() * 0.14);
@@ -409,16 +606,7 @@ void PlayerGUI::resized() {
 		playlistBox->setBounds(playlistBounds);
 	}
 
-	playlistSelector.setVisible(showPlaylistPanel);
-
-	addToPlaylistButton.setVisible(showPlaylistPanel);
-	removeFromPlaylistButton.setVisible(showPlaylistPanel);
-	savePlaylistButton.setVisible(showPlaylistPanel);
-	addNewPlaylistButton.setVisible(showPlaylistPanel);
-	playlistTitleLabel.setVisible(showPlaylistPanel);
-	playlistBox->setVisible(showPlaylistPanel);
-
-
+	// ================= Right Panel =================
 	auto rightPanel = mainArea.removeFromRight(180);
 	rightPanel.removeFromTop(30);
 	auto volumeControlArea = rightPanel.removeFromTop(180);
@@ -428,22 +616,20 @@ void PlayerGUI::resized() {
 	auto muteArea = centeredArea.withSizeKeepingCentre(60, 60);
 	muteButton.setBounds(muteArea);
 
-
+	// ================= Left Panel =================
 	auto leftPanel = mainArea.removeFromLeft(80);
 	leftPanel.removeFromTop(30);
-
 	auto settingsArea = leftPanel.removeFromTop(45);
 	settingsButton.setBounds(settingsArea.withSizeKeepingCentre(40, 40));
-
 	leftPanel.removeFromTop(5);
 
 	auto sliderArea = leftPanel.removeFromTop(leftPanel.getHeight() - 60);
 	speedSlider.setBounds(sliderArea.reduced(20, 40));
-
 	speedLabel.setBounds(leftPanel.removeFromTop(40).reduced(5));
 
 	mainArea.removeFromTop(10);
 
+	// ================= Control Buttons =================
 	controlButtonsArea = mainArea.removeFromBottom(65).reduced(120, 5);
 
 	int infoHeight = 50;
@@ -458,19 +644,15 @@ void PlayerGUI::resized() {
 
 	int sliderHeight = 25;
 	int sliderMargin = 5;
-	auto positionY = infoArea.getY() - sliderMargin - sliderHeight;
-	positionSlider.setBounds(
-		controlButtonsArea.getX(),
-		positionY,
-		controlButtonsArea.getWidth(),
-		sliderHeight
-	);
+	int positionY = infoArea.getY() - sliderMargin - sliderHeight;
+	positionSlider.setBounds(controlButtonsArea.getX(), positionY, controlButtonsArea.getWidth(), sliderHeight);
 
+	// ================= Waveform Area =================
 	int waveformHeight = 200;
 	int spaceForDots = 50;
 	int waveformY_new = positionY - spaceForDots - waveformHeight;
-	auto originalWaveformBounds = mainArea.reduced(30, 30);
 
+	auto originalWaveformBounds = mainArea.reduced(30, 30);
 	waveformArea = juce::Rectangle<int>(
 		originalWaveformBounds.getX(),
 		waveformY_new,
@@ -478,17 +660,69 @@ void PlayerGUI::resized() {
 		waveformHeight
 	);
 
-	auto topEmptySpaceBounds = mainArea.reduced(20);
-	int headerBoxWidth = 450;
-	int headerBoxHeight = 350;
-	headerBoxWidth = juce::jmin(headerBoxWidth, mainArea.getWidth() - 20);
-	headerBoxHeight = juce::jmin(headerBoxHeight, mainArea.getHeight() - 20);
+	// ================= Marker Panel Above Waveform =================
+	if (thumbnail.getTotalLength() > 0.0)
+	{
+		// Determine Marker Panel size above waveform
+		int markerPanelHeight = juce::jmin(80, waveformArea.getHeight() / 3);
+		MarkerPanelArea = juce::Rectangle<int>(
+			waveformArea.getX(),
+			waveformArea.getY() - markerPanelHeight - 10,
+			waveformArea.getWidth(),
+			markerPanelHeight
+		);
 
+		// Layout buttons
+		int buttonHeight = 28;
+		int buttonSpacing = 10;
+		int totalButtonWidth = MarkerPanelArea.getWidth() - ((6 + 1) * buttonSpacing);
+		int buttonWidth = totalButtonWidth / 6;
+
+		int currentX = MarkerPanelArea.getX() + buttonSpacing;
+		int y = MarkerPanelArea.getY() + 10;
+
+		std::vector<juce::TextButton*> markerButtons = {
+			&removeMarker, &setA, &setB, &StartLooping, &goToMarker
+		};
+
+		for (auto* btn : markerButtons)
+		{
+			btn->setBounds(currentX, y, buttonWidth, buttonHeight);
+			btn->setVisible(true);
+			currentX += buttonWidth + buttonSpacing;
+		}
+
+		// Layout combo box
+		int comboHeight = 25;
+		int comboWidth = 200; // adjust to fit
+		int comboX = MarkerPanelArea.getRight() - comboWidth - 10;
+		int comboY = MarkerPanelArea.getY() + 10;
+
+		Markers.setBounds(comboX, comboY, comboWidth, comboHeight);
+		Markers.setVisible(true);
+	}
+	else
+	{
+		// No markers, hide panel and controls
+		MarkerPanelArea = juce::Rectangle<int>(0, 0, 0, 0);
+
+		removeMarker.setVisible(false);
+		setA.setVisible(false);
+		setB.setVisible(false);
+		StartLooping.setVisible(false);
+		goToMarker.setVisible(false);
+		Markers.setVisible(false);
+	}
+
+	// ================= Header Box =================
+	auto topEmptySpaceBounds = mainArea.reduced(20);
+	int headerBoxWidth = juce::jmin(450, mainArea.getWidth() - 20);
+	int headerBoxHeight = juce::jmin(350, mainArea.getHeight() - 20);
 	int headerBoxX = mainArea.getCentreX() - (headerBoxWidth / 2);
 	int headerBoxY = mainArea.getY() + 10;
-
 	headerBoxArea = juce::Rectangle<int>(headerBoxX, headerBoxY, headerBoxWidth, headerBoxHeight);
 
+	// ================= Info & Author =================
 	auto leftInfo = infoArea.removeFromLeft(infoArea.getWidth() / 2);
 	auto rightInfo = infoArea;
 
@@ -502,45 +736,36 @@ void PlayerGUI::resized() {
 
 	duration.setBounds(leftInfo.removeFromTop(25));
 	durationHeader.setBounds(0, 0, 0, 0);
-
 	loadButton.setBounds(0, 0, 0, 0);
 
+	// ================= Control Buttons =================
 	auto buttonRow = controlButtonsArea.reduced(15, 6);
-
 	std::vector<juce::TextButton*> controlBtnsInOrder = {
 		&stopButton, &go_to_startButton, &backwardButton, &playButton,
 		&forwardButton, &go_to_endButton, &restartButton, &repeatButton
 	};
 
 	int numBtns = (int)controlBtnsInOrder.size();
-	int buttonHeight = buttonRow.getHeight();
+	int buttonHeight2 = buttonRow.getHeight();
 	int totalAvailableWidth = buttonRow.getWidth();
-
 	int minSpacing = 5;
-
 	int availableWidthForButtons = totalAvailableWidth - ((numBtns + 1) * minSpacing);
-	int buttonWidth = availableWidthForButtons / numBtns;
+	int buttonWidth2 = availableWidthForButtons / numBtns;
+	if (buttonWidth2 < 37) buttonWidth2 = 37;
+	if (buttonWidth2 > 70) buttonWidth2 = 70;
 
-	if (buttonWidth < 37) {
-		buttonWidth = 37;
-	}
-
-	if (buttonWidth > 70) {
-		buttonWidth = 70;
-	}
-
-	int spacing = (totalAvailableWidth - (numBtns * buttonWidth)) / (numBtns + 1);
-
-	int currentX = buttonRow.getX() + spacing;
-	int y = buttonRow.getY();
-
+	int spacing = (totalAvailableWidth - (numBtns * buttonWidth2)) / (numBtns + 1);
+	int currentX2 = buttonRow.getX() + spacing;
+	int y2 = buttonRow.getY();
 	for (auto* btn : controlBtnsInOrder)
 	{
-		btn->setBounds(currentX, y, buttonWidth, buttonHeight);
-		currentX += buttonWidth + spacing;
+		btn->setBounds(currentX2, y2, buttonWidth2, buttonHeight2);
+		currentX2 += buttonWidth2 + spacing;
 	}
 
+	// Hide unused buttons
 	loadButton.setBounds(0, 0, 0, 0);
+	speedButton.setBounds(0, 0, 0, 0);
 }
 
 void PlayerGUI::buttonClicked(juce::Button* button) {
@@ -670,6 +895,8 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 				{
 				case 1:
 					buttonClicked(&loadButton);
+					resized();
+					repaint();
 					break;
 
 				case 2:
@@ -707,7 +934,6 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 		);
 	}
 
-
 	// Audio control buttons
 	if (button == &loadButton) {
 		fileChooser = std::make_unique<juce::FileChooser>(
@@ -716,6 +942,9 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 			"*.wav;*.mp3;*.flac;*.aiff;*.ogg"
 		);
 
+		markers.clear();
+		Markers.clear();
+		control->updateMarker(markers);
 		fileChooser->launchAsync(
 			juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
 			[this](const juce::FileChooser& fc) {
@@ -726,6 +955,8 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 
 					positionSlider.setRange(0.0, control->getLength(), 0.01);
 					positionSlider.setValue(0.0, juce::dontSendNotification);
+
+					playlistBox->deselectAll();
 
 					if (control->audioExist()) {
 						playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
@@ -789,6 +1020,10 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 	}
 	else if (button == &go_to_startButton) {
 		if (control->audioExist()) {
+			if (currentPlaylistIndex > 0) {
+				playTrackFromPlaylist(currentPlaylistIndex - 1);
+				return;
+			}
 			control->setPosition(0.0);
 			positionSlider.setValue(0.0);
 			repaint(waveformArea);
@@ -824,26 +1059,31 @@ void PlayerGUI::buttonClicked(juce::Button* button) {
 
 void PlayerGUI::timerCallback()
 {
-	if (control != nullptr && control->isPlaying() && !isUserDraggingPosition)
+	if (control == nullptr)
+		return; 
+
+	if (control->isPlaying() && !isUserDraggingPosition)
 	{
 		double pos = control->getAudioPosition();
 		positionSlider.setValue(pos, juce::dontSendNotification);
-
 		repaint(waveformArea);
 
-		if (control->reachEnd()) {
+		if (control->reachEnd())
 			playBackFinished();
-		}
 	}
 
-	if (control->isLoopingAB() && control->MarkerASet() && control->MarkerBSet())
-	{
-		double current = control->getAudioPosition();
-		double markerB = control->getMarkerB();
-		double markerA = control->getMarkerA();
-
-		if (current >= markerB)
-			control->setPosition(markerA);
+	if (control->isMarkerLooping()) {
+		double pos = control->getAudioPosition();
+		if (pos > std::max(markers[control->getMarkerA()].position, markers[control->getMarkerB()].position)) {
+			control->setPosition(std::min(markers[control->getMarkerA()].position, markers[control->getMarkerB()].position));
+			positionSlider.setValue(control->getAudioPosition(), juce::dontSendNotification);
+			repaint(waveformArea);
+		}
+		if (pos < std::min(markers[control->getMarkerA()].position, markers[control->getMarkerB()].position)) {
+			control->setPosition(std::min(markers[control->getMarkerA()].position, markers[control->getMarkerB()].position));
+			positionSlider.setValue(control->getAudioPosition(), juce::dontSendNotification);
+			repaint(waveformArea);
+		}
 	}
 }
 
@@ -976,6 +1216,7 @@ void PlayerGUI::loadWave(juce::File file)
 	thumbnail.setSource(new juce::FileInputSource(file));
 	repaint(waveformArea);
 	repaint();
+	resized();
 }
 
 void PlayerGUI::refreshPlaylist()
@@ -998,6 +1239,10 @@ void PlayerGUI::refreshPlaylist()
 void PlayerGUI::playTrackFromPlaylist(int index)
 {
 	if (control == nullptr) return;
+
+	markers.clear();
+	Markers.clear();
+	control->updateMarker(markers);
 
 	auto& manager = control->getPlaylistManager();
 	std::string activePlaylistName = manager.getActivePlaylist();
@@ -1029,24 +1274,62 @@ void PlayerGUI::playTrackFromPlaylist(int index)
 		playButton.setButtonText(juce::String::fromUTF8("\xE2\x8F\xB8"));
 		stoped = false;
 	}
+	resized();
+	repaint();
 }
 // لما ادوس على ال wave يتغير ال position 
 void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 {
-	if (control != nullptr && control->audioExist() && thumbnail.getTotalLength() > 0.0)
+	if (control == nullptr || !control->audioExist() || thumbnail.getTotalLength() <= 0.0)
 	{
-		auto clickableWaveformArea = waveformArea.reduced(10);
-
-		if (clickableWaveformArea.contains(event.getPosition()))
-		{
-			isUserDraggingPosition = true;
-
-			mouseDrag(event);
-			return;
-		}
+		juce::Component::mouseDown(event);
+		return;
 	}
 
-	juce::Component::mouseDown(event);
+	auto clickableWaveformArea = waveformArea.reduced(10);
+	if (!clickableWaveformArea.contains(event.getPosition()))
+	{
+		juce::Component::mouseDown(event);
+		return;
+	}
+
+	// ================= Right click =================
+	if (event.mods.isRightButtonDown())
+	{
+		double relativePos = (double)(event.x - waveformArea.getX()) / waveformArea.getWidth();
+		double audioPos = relativePos * thumbnail.getTotalLength();
+
+		const double tolerance = 0.05;
+		bool tooClose = false;
+
+		for (auto& m : markers)
+		{
+			if (std::abs(m.position - audioPos) < tolerance * thumbnail.getTotalLength())
+			{
+				tooClose = true;
+				break;
+			}
+		}
+
+		if (tooClose)
+			return;
+
+		juce::String label = "Marker " + juce::String(markers.size() + 1);
+		control->addMarker(audioPos, label, 0);
+
+		markers = control->getMarkers();
+
+		Markers.clear();
+		for (int i = 0; i < markers.size(); ++i)
+			Markers.addItem(markers[i].label, (int)(i + 1));
+
+		repaint(MarkerPanelArea);
+		return;
+	}
+
+	// ================= Left click =================
+	isUserDraggingPosition = true;
+	mouseDrag(event);
 }
 
 void PlayerGUI::mouseDrag(const juce::MouseEvent& event)
@@ -1114,6 +1397,7 @@ void PlayerGUI::reset()
 	{
 		control->stop();
 		control->setPosition(0.0);
+		control->reset();
 
 		if (control->isLooping())
 		{
@@ -1121,6 +1405,10 @@ void PlayerGUI::reset()
 			repeatButton.setButtonText(juce::String::fromUTF8("\xE2\x86\xBB"));
 		}
 	}
+
+	markers.clear();
+	Markers.clear();
+	control->updateMarker(markers);
 
 	thumbnail.clear();
 	showPlaylistPanel = false;
@@ -1197,7 +1485,7 @@ void PlayerGUI::save(const std::string& path) {
 		std::string title, artist, path, url, thumbnailFile, thumbnailUrl, duration, lastVolume, lastPosition, isLooping, activePlaylistName;
 		if (line.empty()) continue;
 		std::string Line = line;
-		// title
+		// titles
 		int i = line.find('|');
 		title = line.substr(0, i);
 		line = line.substr(i + 1);
@@ -1244,15 +1532,27 @@ void PlayerGUI::save(const std::string& path) {
 		result += Line;
 	}
 	in.close();
+	//markers string
+	std::string markersStr;
+	const auto& markers = control->getMarkers();
+	for (int i = 0; i < markers.size(); ++i)
+	{
+		markersStr += std::to_string(markers[i].position) + ":" +
+			std::to_string(markers[i].type) + ":" +
+			markers[i].label.toStdString();
+
+		if (i + 1 < markers.size())
+			markersStr += ",";
+	}
 	std::ofstream out(path);
 	out << control->getTitle() << '|' << control->getName() << '|' << this->control->getFileSource() << '|' << "" << '|' << "" << '|'
 		<< '|' << control->getDuration() << '|' << lastVal << '|' << this->control->getCurrentPosition() << '|' << control->isLooping() << '|'
-		<< this->control->getCurrentPlaylistName() << '\n';
+		<< this->control->getCurrentPlaylistName() << '|' << markersStr << '\n';
 	out << result;
 	out.close();
 }
 
-void PlayerGUI::setAll(float lastVolume, float lastPosition, bool loop) {
+void PlayerGUI::setAll(float lastVolume, float lastPosition, bool loop, std::vector<Marker> m) {
 	volumeSlider.setValue(lastVolume);
 	control->setPosition(lastPosition);
 	control->setLooping(loop);
@@ -1275,5 +1575,32 @@ void PlayerGUI::setAll(float lastVolume, float lastPosition, bool loop) {
 	stoped = true;
 	twoGUIs = false;
 	control->stop();
+	playlistBox->deselectAll();
 	positionSlider.setValue(lastPosition);
+	markers = m;
+	Markers.clear();
+	for (int i = 0; i < markers.size(); ++i)
+		Markers.addItem(markers[i].label, (int)(i + 1));
+	control->updateMarker(markers);
+
+	resized();
+	repaint();
+}
+
+void PlayerGUI::updateMarkerLabel()
+{
+	int idx = Markers.getSelectedId() - 1;
+	if (idx < 0 || idx >= markers.size())
+		return;
+
+	markers[idx].label = Labels;
+
+	Markers.clear();
+	for (int i = 0; i < markers.size(); ++i)
+		Markers.addItem(markers[i].label, i + 1);
+
+	if (control != nullptr)
+		control->updateMarker(markers);
+
+	repaint(MarkerPanelArea);
 }

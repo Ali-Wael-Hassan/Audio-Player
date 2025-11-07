@@ -18,7 +18,7 @@ SettingsPage::SettingsPage(PlayerAudio* playerRef, const std::string& initialCol
     sleepLabel.setText("Sleep Timer:", juce::dontSendNotification);
     sleepLabel.setJustificationType(juce::Justification::centredLeft);
 
-    sleepSlider.setRange(1, 1e6, 1);
+    sleepSlider.setRange(1, 120, 1);
     sleepSlider.setValue(30);
     sleepSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 60, 20);
 

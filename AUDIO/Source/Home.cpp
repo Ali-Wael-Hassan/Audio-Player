@@ -1,4 +1,4 @@
-#include "Home.h"
+﻿#include "Home.h"
 
 //==============================================================================
 // STATIC MEMBER INITIALIZATION
@@ -154,20 +154,11 @@ void RecentsListModel::paintListBoxItem(int rowNumber, juce::Graphics& g, int wi
 	juce::Rectangle<int> durationArea = mainTextArea.removeFromRight((int)(width * 0.15));
 	juce::Rectangle<int> titleArtistArea = mainTextArea;
 
-	if (item.thumbnailFile.existsAsFile())
-	{
-		juce::Image thumbnail = juce::ImageCache::getFromFile(item.thumbnailFile);
-		if (thumbnail.isValid())
-			g.drawImage(thumbnail, imageBounds.toFloat(), juce::RectanglePlacement::centred);
-	}
-	else
-	{
-		g.setColour(rowTextColor.withAlpha(0.2f));
-		g.fillRect(imageBounds);
-		g.setColour(rowTextColor);
-		g.setFont(imageBounds.getHeight() * 0.6f);
-		g.drawText(JUCE_T("\xe2\x99\xab"), imageBounds, juce::Justification::centred);
-	}
+	g.setColour(rowTextColor.withAlpha(0.2f));
+	g.fillRect(imageBounds);
+	g.setColour(rowTextColor);
+	g.setFont(imageBounds.getHeight() * 0.6f);
+	g.drawText(juce::String::fromUTF8("\xe2\x99\xab"), imageBounds, juce::Justification::centred);
 
 	juce::String rowText = item.title + " - " + item.artist;
 	g.setColour(foreground);
@@ -179,7 +170,7 @@ void RecentsListModel::paintListBoxItem(int rowNumber, juce::Graphics& g, int wi
 	g.drawText(item.duration, durationArea, juce::Justification::centredRight, true);
 }
 
-void RecentsListModel::listBoxItemClicked(int row, const juce::MouseEvent&)
+void RecentsListModel::listBoxItemDoubleClicked(int row, const juce::MouseEvent&)
 {
 	if (row < 0 || row >= results.size())
 		return;
@@ -191,7 +182,7 @@ void RecentsListModel::listBoxItemClicked(int row, const juce::MouseEvent&)
 	else if (item.filePath.existsAsFile())
 		ownerHome->loadSong(item.filePath.getFullPathName());
 
-	ownerHome->getGUIF()->setAll(std::stof(item.lastVolume.toStdString()), std::stof(item.lastPostion.toStdString()), std::stoi(item.isLooping.toStdString()));
+	ownerHome->getGUIF()->setAll(std::stof(item.lastVolume.toStdString()), std::stof(item.lastPostion.toStdString()), std::stoi(item.isLooping.toStdString()), item.marker);
 }
 
 //==============================================================================
@@ -263,7 +254,7 @@ void SearchResultsModel::paintListBoxItem(int rowNumber, juce::Graphics& g, int 
 	g.drawText(song.duration, durationArea, juce::Justification::centredRight, true);
 }
 
-void SearchResultsModel::listBoxItemClicked(int row, const juce::MouseEvent&)
+void SearchResultsModel::listBoxItemDoubleClicked(int row, const juce::MouseEvent&)
 {
 	if (row < 0 || row >= results.size())
 		return;
@@ -438,6 +429,27 @@ Home::Home(const std::string& themeColor, const std::string& language, PlayerGUI
 	GUI1->setPlayerListener(this);
 	GUI2->setPlayerListener(this);
 
+	logoImage = juce::ImageCache::getFromMemory(BinaryData::logo_jpg, BinaryData::logo_jpgSize);
+
+
+	welcomeLabel.setText(
+		juce::String::fromUTF8(u8"🎶 Welcome back to Chicken Player!"),
+		juce::dontSendNotification
+	);
+	welcomeLabel.setFont(juce::Font(26.0f, juce::Font::bold));
+	welcomeLabel.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(welcomeLabel);
+
+	juce::Image suggest = juce::ImageCache::getFromMemory(BinaryData::husr_jpg, BinaryData::husr_jpgSize);
+	tempSuggest.setImages(true, true, true, suggest, 1.0f, {}, suggest, 0.7f, {}, suggest, 0.3f, {});
+	tempSuggest.addListener(this);
+
+	tempSuggest.onClick = [this]()
+	{
+		buttonClicked(&libraryButton);
+		repaint();
+	};
+
 	setSize(500, 250);
 }
 
@@ -540,6 +552,7 @@ void Home::buttonClicked(juce::Button* button) {
 
 		searchResultsList.setVisible(false);
 
+		welcomeLabel.setVisible(true);
 		tempSuggest.setVisible(true);
 		recent.setVisible(true);
 		recentsListBox.setVisible(true);
@@ -574,6 +587,7 @@ void Home::buttonClicked(juce::Button* button) {
 			GUI1->reset();
 		}
 
+		welcomeLabel.setVisible(false);
 		tempSuggest.setVisible(false);
 		recent.setVisible(false);
 		recentsListBox.setVisible(false);
@@ -607,6 +621,7 @@ void Home::buttonClicked(juce::Button* button) {
 		favoritePage->loadPlaylistDataFromFile();
 		favoritePage->loadSongDataFromFile();
 
+		welcomeLabel.setVisible(false);
 		tempSuggest.setVisible(false);
 		recent.setVisible(false);
 		recentsListBox.setVisible(false);
@@ -628,6 +643,7 @@ void Home::buttonClicked(juce::Button* button) {
 		}
 
 
+		welcomeLabel.setVisible(false);
 		tempSuggest.setVisible(false);
 		recent.setVisible(false);
 		recentsListBox.setVisible(false);
@@ -672,6 +688,23 @@ void Home::paintBackgroundGradients(juce::Graphics& g, const std::map<std::strin
 		juce::ColourGradient gradient2(logoColor1, logoArea.getTopLeft().toFloat(), logoColor2, logoArea.getBottomRight().toFloat(), false);
 		g.setGradientFill(gradient2);
 		g.fillRect(logoArea);
+
+		if (logoImage.isValid())
+		{
+			g.drawImageWithin(
+				logoImage,
+				logoArea.getX(), logoArea.getY(),
+				logoArea.getWidth(), logoArea.getHeight(),
+				juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize,
+				false
+			);
+		}
+		else
+		{
+			// Optional fallback text
+			g.setColour(juce::Colours::red);
+			g.drawText("No Logo", logoArea, juce::Justification::centred);
+		}
 	}
 }
 // Paint Helper for settings overlay
@@ -693,6 +726,7 @@ void Home::loadSong(juce::String source) {
 	if (GUI1) GUI1->setVisible(true);
 	searchResultsList.setVisible(false);
 
+	welcomeLabel.setVisible(false);
 	tempSuggest.setVisible(false);
 	recent.setVisible(false);
 	recentsListBox.setVisible(false);
@@ -758,8 +792,6 @@ void Home::themeSettingChanged(const juce::String& newThemeName)
 		button.setColour(juce::TextButton::textColourOffId, newTextColor);
 		button.setColour(juce::TextButton::buttonOnColourId, buttonHoverColor);
 		};
-
-	updateTextButton(tempSuggest);
 
 	auto updateImageButton = [&](juce::ImageButton& button) {
 		button.setColour(juce::TextButton::buttonColourId, buttonNormalColor);
@@ -914,11 +946,13 @@ void Home::layoutPageArea(juce::Rectangle<int>& bounds)
 		return;
 	}
 
-	auto suggest = bounds.removeFromTop((int)(bounds.getHeight() * 0.5));
-	tempSuggest.setBounds(suggest);
+	auto suggestArea = bounds.removeFromTop((int)(bounds.getHeight() * 0.5));
+
+	auto labelArea = suggestArea.removeFromTop((int)(suggestArea.getHeight() * 0.25));
+	welcomeLabel.setBounds(labelArea.reduced(20, 5));
+	tempSuggest.setBounds(suggestArea);
 
 	recent.setBounds(bounds.removeFromTop((int)(bounds.getHeight() * 0.2)));
-
 	recentsListBox.setBounds(bounds);
 }
 
@@ -1108,6 +1142,28 @@ void Home::loadRecentsFromFile()
 				item.lastPostion = parts[8];
 				item.isLooping = parts[9];
 				item.activePlaylistName = parts[10];
+
+				if (parts.size() > 11)
+				{
+					juce::String markersStr = parts[11];
+					juce::StringArray markerTokens;
+					markerTokens.addTokens(markersStr, ",", "");
+
+					for (const auto& markerData : markerTokens)
+					{
+						juce::StringArray markerParts;
+						markerParts.addTokens(markerData, ":", "");
+
+						if (markerParts.size() >= 3)
+						{
+							Marker m;
+							m.position = markerParts[0].getDoubleValue();
+							m.type = markerParts[1].getIntValue();
+							m.label = markerParts[2];
+							item.marker.push_back(m);
+						}
+					}
+				}
 
 				recentSongs.add(item);
 			}

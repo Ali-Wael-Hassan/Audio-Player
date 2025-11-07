@@ -39,8 +39,8 @@ public:
 	SongListModel(LibraryPage& p, const juce::Array<SongData>& songs);
 	int getNumRows() override;
 	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
-
 	void listBoxItemClicked(int row, const juce::MouseEvent& e) override;
+	void listBoxItemDoubleClicked(int row, const juce::MouseEvent& e) override;
 
 private:
 	LibraryPage& ownerPage;
@@ -58,8 +58,8 @@ public:
 	PlaylistListModel(LibraryPage& p, const juce::Array<PlaylistData>& playlists);
 	int getNumRows() override;
 	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
-
 	void listBoxItemClicked(int row, const juce::MouseEvent& e) override;
+	void listBoxItemDoubleClicked(int row, const juce::MouseEvent& e) override;
 
 private:
 	LibraryPage& ownerPage;

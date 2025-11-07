@@ -8,6 +8,12 @@
 #include "PlayerAudioSignal.h"
 #include "PlaylistManager.h"
 
+struct Marker {
+    double position;
+    juce::String label;
+    int type;
+};
+
 class PlayerAudio : public juce::AudioAppComponent {
 public:
     class PlayerAudioSignal
@@ -41,14 +47,6 @@ public:
     double getAudioPosition();
     double getAudioLength();
 
-    //Task 10
-    void setMarkers(double position);
-    bool isLoopingAB()const;
-    bool MarkerASet()const;
-    bool MarkerBSet()const;
-    double getMarkerA();
-    double getMarkerB();
-
     void toggleLooping();
     int isLooping() const;
 
@@ -79,6 +77,48 @@ public:
     void cancelSleepTimer();
     bool isSleepTimerRunning() const;
 
+    // Marker
+	void addMarker(double position, const juce::String& label, int type) { markers.push_back({ position, label, type }); }
+    void removeMarker(int idx) {
+        if (idx == markerB)
+        {
+            markerB = -1;
+            markerLooping = false;
+        }
+        if (idx == markerA)
+        {
+            markerA = -1;
+            markerLooping = false;
+        }
+        markers.erase(markers.begin() + idx); 
+    }
+    void updateMarker(const std::vector<Marker>& updated) { markers = updated; }
+    void setMarkerA(int index) { 
+        if(markerA >= 0)
+            markers[markerA].type = 0 ;
+        markerA = index; 
+        markers[index].type = 1; 
+        markerLooping = false;
+    }
+    void setMarkerB(int index) {
+        if (markerB >= 0)
+            markers[markerB].type = 0 ; 
+        markerB = index; 
+        markers[index].type = 2; 
+        markerLooping = false;
+    }
+	void toggleLoopAB() { 
+        if (markerA < 0 || markerB < 0) {
+            markerLooping = false;
+            return;
+        }
+        markerLooping = !markerLooping; 
+    }
+    void goToMarker(double pos) { setPosition(pos);  }
+	bool isMarkerLooping() const { return markerLooping; }
+	int getMarkerA() const { return markerA; }
+	int getMarkerB() const { return markerB; }
+	std::vector<Marker> getMarkers() const { return markers; }
 private:
     class SleepTimer : public juce::Timer
     {
@@ -135,11 +175,8 @@ private:
     juce::String durationText = "00:00";
     int loopActive = 0;
 
-    //Task 10
-    double markerA = -1.0;
-    double markerB = -1.0;
-    bool loopingAB = false;
-    bool markerASet = false;
-    bool markerBSet = false;
-
+    // Marker
+	std::vector<Marker> markers;
+    int markerA = -1, markerB = -1;
+	bool markerLooping = false;
 };

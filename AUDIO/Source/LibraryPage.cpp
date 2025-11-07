@@ -223,6 +223,18 @@ void SongListModel::listBoxItemClicked(int row, const juce::MouseEvent& e)
 	{
 		ownerPage.toggleFavoriteStatus(row);
 	}
+}
+
+void SongListModel::listBoxItemDoubleClicked(int row, const juce::MouseEvent& e)
+{
+
+	auto rowBounds = juce::Rectangle<int>(0, 0, e.eventComponent->getWidth(), 40);
+	auto favoriteArea = rowBounds.removeFromRight(40);
+
+	if (favoriteArea.contains(e.getPosition()))
+	{
+
+	}
 	else
 	{
 		if (row >= 0 && row < songList.size())
@@ -336,6 +348,17 @@ void PlaylistListModel::listBoxItemClicked(int row, const juce::MouseEvent& e)
 	if (favoriteArea.contains(e.getPosition()))
 	{
 		ownerPage.togglePlaylistFavoriteStatus(row);
+	}
+}
+
+void PlaylistListModel::listBoxItemDoubleClicked(int row, const juce::MouseEvent& e)
+{
+	auto rowBounds = juce::Rectangle<int>(0, 0, e.eventComponent->getWidth(), 60);
+	auto favoriteArea = rowBounds.removeFromRight(60);
+
+	if (favoriteArea.contains(e.getPosition()))
+	{
+		
 	}
 	else
 	{

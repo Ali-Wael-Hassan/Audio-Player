@@ -24,6 +24,17 @@ void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
     }
     resamplingSource->getNextAudioBlock(bufferToFill);
 
+    if (isMarkerLooping()) {
+        double pos = getAudioPosition();
+        if (pos > std::max(markers[getMarkerA()].position, markers[getMarkerB()].position)) {
+            setPosition(std::min(markers[getMarkerA()].position, markers[getMarkerB()].position));
+        }
+        if (pos < std::min(markers[getMarkerA()].position, markers[getMarkerB()].position)) {
+            setPosition(std::min(markers[getMarkerA()].position, markers[getMarkerB()].position));
+        }
+        return;
+    }
+
     if (transportSource.hasStreamFinished())
     {
         if (loopActive == 1)
@@ -111,7 +122,7 @@ void PlayerAudio::startNewFromFile(juce::File file) {
             }
         }
 
-        if (!openFile.isNull() && openFile.tag()) {
+       if (!openFile.isNull() && openFile.tag()) {
             TagLib::Tag* tagObject = openFile.tag();
 
             juce::String artist = juce::String(tagObject->artist().toCString(true));
@@ -223,62 +234,6 @@ double PlayerAudio::getAudioPosition()
 double PlayerAudio::getAudioLength()
 {
     return transportSource.getLengthInSeconds();
-}
-
-void PlayerAudio::setMarkers(double position)
-{
-    if (!markerASet)
-    {
-        markerA = position;
-        markerASet = true;
-        DBG("Marker A set at: " << markerA);
-    }
-    else if (!markerBSet)
-    {
-        markerB = position;
-        markerBSet = true;
-        // ensure order
-        if (markerB < markerA)
-            std::swap(markerA, markerB);
-
-        loopingAB = true; // both set, enable looping
-        DBG("Marker B set at: " << markerB << " | A�B Looping Enabled");
-    }
-    else
-    {
-        // reset if pressed again
-        markerASet = markerBSet = false;
-        loopingAB = false;
-        markerA = markerB = -1.0;
-    }
-}
-
-
-
-bool PlayerAudio::isLoopingAB()const
-{
-    return loopingAB;
-}
-
-
-bool PlayerAudio::MarkerASet() const
-{
-    return markerASet;
-}
-
-bool PlayerAudio::MarkerBSet() const
-{
-    return markerBSet;
-}
-
-double PlayerAudio::getMarkerA()
-{
-    return markerA;
-}
-
-double PlayerAudio::getMarkerB()
-{
-    return markerB;
 }
 
 double PlayerAudio::getLength() {

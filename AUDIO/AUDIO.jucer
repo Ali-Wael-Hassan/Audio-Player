@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="iaIQNx" name="AUDIO" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+  <MAINGROUP id="fhV4gX" name="AUDIO">
+    <GROUP id="{DA8CD624-521C-04C7-704E-B4DFB905C0CF}" name="Source">
+      <FILE id="vLF40Q" name="husr.jpg" compile="0" resource="1" file="C:/MyImages/husr.jpg"/>
+      <FILE id="H3brR6" name="logo.jpg" compile="0" resource="1" file="C:/Users/Ali/Downloads/logo.jpg"/>
+      <FILE id="nmaCef" name="SettingsPage.h" compile="0" resource="0" file="Source/SettingsPage.h"/>
+      <FILE id="s1wRVW" name="SettingsPage.cpp" compile="1" resource="0"
+            file="Source/SettingsPage.cpp"/>
+      <FILE id="geH1MF" name="homen.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/homen.png"/>
+      <FILE id="I7gJxY" name="LibraryPage.cpp" compile="1" resource="0" file="Source/LibraryPage.cpp"/>
+      <FILE id="XGCWZw" name="LibraryPage.h" compile="0" resource="0" file="Source/LibraryPage.h"/>
+      <FILE id="WmzHlQ" name="repeat.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/repeat.png"/>
+      <FILE id="CVJt6M" name="stop.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/stop.png"/>
+      <FILE id="xI5sS8" name="go_to_end.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/go_to_end.png"/>
+      <FILE id="QeooI3" name="go_to_start.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/go_to_start.png"/>
+      <FILE id="j1sTOw" name="mute.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/mute.png"/>
+      <FILE id="X2Lyqj" name="play.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/play.png"/>
+      <FILE id="iiGQyO" name="three.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/three.png"/>
+      <FILE id="sRJBMZ" name="edit.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/edit.png"/>
+      <FILE id="j9dsj7" name="list.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/list.png"/>
+      <FILE id="S7Z5T0" name="heart.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/heart.png"/>
+      <FILE id="lGIB2t" name="book.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/book.png"/>
+      <FILE id="LwfkZm" name="search.png" compile="0" resource="1" file="C:/Users/Ali/Downloads/icons/search.png"/>
+      <FILE id="hyQKhz" name="PlaylistManager.cpp" compile="1" resource="0"
+            file="Source/PlaylistManager.cpp"/>
+      <FILE id="WSiJ6u" name="PlaylistManager.h" compile="0" resource="0"
+            file="Source/PlaylistManager.h"/>
+      <FILE id="NfStxu" name="logs.png" compile="0" resource="1" file="../../Download/logs.png"/>
+      <FILE id="rXEP6k" name="settings.png" compile="0" resource="1" file="../../Download/settings.png"/>
+      <FILE id="sa0Wwf" name="Home.cpp" compile="1" resource="0" file="Source/Home.cpp"/>
+      <FILE id="tcMqIe" name="Home.h" compile="0" resource="0" file="Source/Home.h"/>
+      <FILE id="pBLC16" name="PlayerAudio.cpp" compile="1" resource="0" file="Source/PlayerAudio.cpp"/>
+      <FILE id="g9c9Ty" name="PlayerAudio.h" compile="0" resource="0" file="Source/PlayerAudio.h"/>
+      <FILE id="Q9tWia" name="PlayerAudioSignal.h" compile="0" resource="0"
+            file="Source/PlayerAudioSignal.h"/>
+      <FILE id="l5kki1" name="PlayerGUI.cpp" compile="1" resource="0" file="Source/PlayerGUI.cpp"/>
+      <FILE id="xUdTrO" name="PlayerGUI.h" compile="0" resource="0" file="Source/PlayerGUI.h"/>
+      <FILE id="AmVfuu" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="pKeHYF" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="HeWAu3" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022" externalLibraries="tag.lib&#10;zlib.lib"
+            extraDefs="TAGLIB_STATIC">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="AUDIO" headerPath="C:\Dev\Libs\taglib_source\&#10;C:\Dev\Libs\taglib_source\toolkit\"
+                       libraryPath="C:\Dev\Libs\zlib_build\Debug\&#10;C:\Dev\Libs\taglib_build\Debug\"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="AUDIO" headerPath="C:\Dev\Libs\taglib_source\&#10;C:\Dev\Libs\taglib_source\toolkit\"
+                       libraryPath="C:\Dev\Libs\zlib_build\Release\&#10;C:\Dev\Libs\taglib_build\Release\"
+                       optimisation="4"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+</JUCERPROJECT>

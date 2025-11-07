@@ -6,13 +6,19 @@
 class NewPlaylistPopup : public juce::Component
 {
 public:
+
+	// Popup Menu for Getting Playlist name from User
 	NewPlaylistPopup(std::function<void(const juce::String&)> callback)
 		: onCreate(callback)
 	{
+
+		// Making Components visible
 		addAndMakeVisible(nameEditor);
 		addAndMakeVisible(createButton);
 
+		// Setting text
 		createButton.setButtonText("Create");
+		// Using Lambda function to return text when clicking
 		createButton.onClick = [this]()
 			{
 				if (onCreate)
@@ -23,13 +29,19 @@ public:
 
 	void resized() override
 	{
-		nameEditor.setBounds(10, 10, getWidth() - 20, 24);
-		createButton.setBounds(10, 40, 80, 24);
+		// Text Input
+		nameEditor.setBounds(x, y, getWidth() - 20, 24);
+		// Apply Button
+		createButton.setBounds(x, y+30, getWidth() - 20, 24);
 	}
 
 private:
+	// X, Y for setting the menu location
+	int x, y;
 	juce::TextEditor nameEditor;
 	juce::TextButton createButton;
+	// Funtion Object
+	// std::function<parameters(return type)> name
 	std::function<void(const juce::String&)> onCreate;
 };
 
@@ -39,12 +51,13 @@ class CustomButtonLookAndFeel : public juce::LookAndFeel_V4
 public:
 	juce::Font getTextButtonFont(juce::TextButton&, int buttonHeight) override
 	{
+		// Segoe UI Symbol for better windows support to look native
 		return juce::Font("Segoe UI Symbol", 24.0f, juce::Font::bold);
 	}
 };
 
 class PlayerGUI :
-	public juce::Component,
+	public juce::Component, // Making the user object
 	public juce::Button::Listener,	//لما حد يدوس أزرار
 	public juce::Slider::Listener, //لما حد يحرك السلايدرز
 	public PlayerAudio::PlayerAudioSignal, // ياخد إشارات من الصوت
@@ -53,89 +66,137 @@ class PlayerGUI :
 	public juce::ChangeListener// تغيرات
 {
 public:
+	// ===============================================
+	// ============== Listener =======================
+	// ===============================================
+
+	// Listener class to make this class communicate with others
 	class Listener
 	{
 	public:
 		virtual ~Listener() = default;
+		// return to home page
 		virtual void returnToHomePage() = 0;
+		// Open multiple Players
 		virtual void twoGUI() = 0;
+		// Open Settings from home(central class) to communicate with all classes
 		virtual void openSettings() = 0;
 	};
+	// Set listener method to send singals to Home
+	void setPlayerListener(PlayerGUI::Listener* l) { listen = l; }
+
+	// ===============================================
+	// ============== Creation\Destruction ===========
+	// ===============================================
+	// Constructor accepts address of audio player (audio engine), url (path from The Internet), fileName (local path)
 	PlayerGUI(PlayerAudio& control, juce::String url, juce::String fileName);
+	// Destructor does nothing since there is no allocation
 	~PlayerGUI()
 	{
 
 	}
+	// Helper method for setup
+	void initializeControls();
 
+	// ===============================================
+	// ============== Last Sessions Setup ============
+	// ===============================================
+	// Called by Home to load from library and last sessions
 	void loadSong(juce::String source);
 	void loadPlaylist(juce::String name);
 
-	void paint(juce::Graphics& g) override; //بترسم كل حاجة على الشاشة
-	void resized() override;//الجحم و التوزيعه 
-	void buttonClicked(juce::Button* button) override;// بتتنفذ لما حد يدوس على أي زرار
-	void sliderValueChanged(juce::Slider* slider) override;// سلايدر
-	void sliderDragStarted(juce::Slider* slider) override;// سلايدر
-	void sliderDragEnded(juce::Slider* slider) override;// سلايدر
-	void playBackFinished() override;//بتتنفذ لما الأغنية 
+	// ===============================================
+	// ============== Screen Setup ===================
+	// ===============================================
+	// Painting To The Screen
+	void paint(juce::Graphics& g) override;
+	// Resizing Window (nearly responsive)
+	void resized() override;
+
+
+	// ===============================================
+	// ============== GUI Buttons ====================
+	// ===============================================
+	// Connect the logic with GUI
+	void buttonClicked(juce::Button* button) override;
+
+	// ===============================================
+	// ============== Sliders Methods ================
+	// ===============================================
+	// Updating values that has relation to the slider
+	void sliderValueChanged(juce::Slider* slider) override;
+	// Track when user start dragging
+	void sliderDragStarted(juce::Slider* slider) override;
+	// Track when user stop dragging
+	void sliderDragEnded(juce::Slider* slider) override;
+
+	// ===============================================
+	// ============== Receiving Signals ==============
+	// ===============================================
+	// Manage When the Audio file ends (with the four loop states)
+	void playBackFinished() override;
+	// Method from PlayerAudio::Listener to receive signals from the audio engine
 	void loadMetaData() override;
 	void loadWave(juce::File file) override;
-	void timerCallback() override;// بتتنفذ كل فترة معينة (زي تحديث وقت الأغنية كل ثانية
 
-	void changeListenerCallback(juce::ChangeBroadcaster* source) override;//بتتنفذ لما يحصل تغيير في الصوت (زي لما يتحمل ملف جديد)
-	// تحريك ال wave 
+	// ===============================================
+	// ============== Checkers =======================
+	// ===============================================
+	// Track the program state every x seconds
+	void timerCallback() override;
+	// Listen for general Signals that doesn't have specific Listener
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+	// Manage Wave Area Clicking
 	void mouseDown(const juce::MouseEvent& event) override;
 	void mouseDrag(const juce::MouseEvent& event) override;
 	void mouseUp(const juce::MouseEvent& event) override;
 
+	// ===============================================
+	// ============== Setters\Getters ================
+	// ===============================================
+	// Getter For Saving Some Format in last sessions
 	juce::Slider& getVolume();
 	juce::Slider& getPosition();
-	void setPlayerListener(PlayerGUI::Listener* l) {listen = l; }
 
+	// ===============================================
+	// ============== Refreshing and Helpers =========
+	// ===============================================
+	// Applied when returning home
 	void reset();
+	// Refresh GUI
 	void refreshPlaylistSelector();
+	void refreshPlaylist();
+	// Play Specific song using its index
+	void playTrackFromPlaylist(int index);
+	// Save in some format for last sessions
 	void save(const std::string& path);
-	void setAll(float lastVolume, float lastPosition, bool loop);
+	// load of last session
+	void setAll(float lastVolume, float lastPosition, bool loop, std::vector<Marker> m);
+	void PlayerGUI::updateMarkerLabel();
+
 private:
+	// ===============================================
+	// ============== Marker Management ==============
+	// ===============================================
+	std::vector<Marker> markers;
+	juce::ComboBox Markers;
+	juce::String Labels;
+	int markerA, markerB;
+	juce::TextButton removeMarker;
+	juce::TextButton setA;
+	juce::TextButton setB;
+	juce::TextButton StartLooping;
+	juce::TextButton goToMarker;
+	juce::Rectangle<int> MarkerPanelArea;
+	juce::TextEditor labelEditor;
+
+	// ===============================================
+	// ============== Playlist Management ============
+	// ===============================================
+	juce::Rectangle<int> playlistPanelArea;
 	juce::ComboBox playlistSelector;
-	// Custom LookAndFeel
-	CustomButtonLookAndFeel customLookAndFeel;
-
-	// Audio
-	//pointer البيشغل الكود
-	PlayerAudio* control;
-
-	PlayerGUI::Listener* listen;
-
-	// GUI Controls - Buttons
-	juce::TextButton loadButton{ "Load Files" };
-	juce::TextButton restartButton;
-	juce::TextButton stopButton;
-	juce::TextButton playButton;
-	juce::TextButton muteButton;
-	juce::TextButton go_to_startButton{ "|<" };
-	juce::TextButton go_to_endButton;
-	juce::TextButton speedButton{ "Speed: 1.0x" };
-	juce::TextButton repeatButton;
-	juce::TextButton forwardButton;
-	juce::TextButton backwardButton;
-	juce::TextButton markerButton{ "Flag Marker A/B:Not Set" };
-	juce::TextButton settingsButton;
-
-
-	std::vector<juce::TextButton*> buttons = {
-		&loadButton, &restartButton, &stopButton, &playButton,
-		&muteButton, &go_to_startButton, &go_to_endButton,
-		&speedButton, &repeatButton ,&forwardButton ,&backwardButton ,&settingsButton, & markerButton
-	};
-
-	// Playlist Panel Controls //زوات حاجات بس فى حاجات منهم مش شغاله 
-	juce::TextButton addToPlaylistButton{ "Add to Playlist" }; //شغال
-	juce::TextButton removeFromPlaylistButton{ "Remove Selected" };//شغال
-	juce::TextButton savePlaylistButton{ "Save Playlist" };
-	juce::TextButton addNewPlaylistButton{ "add Playlist" };
 	juce::Label playlistTitleLabel;
 
-	// Custom ListBox for Playlist // بتاع علي 
 	class PlaylistListBox : public juce::ListBox, public juce::ListBoxModel
 	{
 	public:
@@ -147,10 +208,7 @@ private:
 			setColour(juce::ListBox::outlineColourId, juce::Colour::fromRGB(100, 80, 150));
 		}
 
-		int getNumRows() override
-		{
-			return (int)playlistItems.size();
-		}
+		int getNumRows() override { return (int)playlistItems.size(); }
 
 		void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override
 		{
@@ -165,10 +223,8 @@ private:
 
 			g.setColour(juce::Colours::white);
 			g.setFont(14.0f);
-
 			auto& item = playlistItems[rowNumber];
 			juce::String displayText = juce::String(rowNumber + 1) + ". " + item.first;
-
 			g.drawText(displayText, 10, 0, width - 20, height, juce::Justification::centredLeft);
 
 			if (rowNumber == currentPlayingIndex)
@@ -181,9 +237,7 @@ private:
 		void listBoxItemDoubleClicked(int row, const juce::MouseEvent&) override
 		{
 			if (row >= 0 && row < playlistItems.size())
-			{
 				owner.playTrackFromPlaylist(row);
-			}
 		}
 
 		void updatePlaylist(const std::vector<std::pair<std::string, std::string>>& items)
@@ -209,10 +263,10 @@ private:
 
 		void deselectAll()
 		{
+			currentPlayingIndex = -1;
 			deselectAllRows();
 			repaint();
 		}
-
 
 	private:
 		PlayerGUI& owner;
@@ -221,14 +275,54 @@ private:
 	};
 
 	std::unique_ptr<PlaylistListBox> playlistBox;
-
 	std::string currentPlaylistKey;
 	int currentPlaylistIndex = -1;
 	bool showPlaylistPanel = false;
 	bool twoGUIs = false;
 
-	// Custom Circular Slider for Volume
-	class CircularVolumeSlider : public juce::Slider //للتحكم في مستوى الصوت
+	// Playlist Buttons
+	juce::TextButton addToPlaylistButton{ "Add to Playlist" };
+	juce::TextButton removeFromPlaylistButton{ "Remove Selected" };
+	juce::TextButton savePlaylistButton{ "Save Playlist" };
+	juce::TextButton addNewPlaylistButton{ "add Playlist" };
+
+	// ===============================================
+	// ============== Custom Font ====================
+	// ===============================================
+	CustomButtonLookAndFeel customLookAndFeel;
+
+	// ===============================================
+	// ============== Engine & Listener ==============
+	// ===============================================
+	PlayerAudio* control;
+	PlayerGUI::Listener* listen;
+
+	// ===============================================
+	// ============== Main Buttons ===================
+	// ===============================================
+	juce::TextButton loadButton{ "Load Files" };
+	juce::TextButton restartButton;
+	juce::TextButton stopButton;
+	juce::TextButton playButton;
+	juce::TextButton muteButton;
+	juce::TextButton go_to_startButton{ "|<" };
+	juce::TextButton go_to_endButton;
+	juce::TextButton speedButton{ "Speed: 1.0x" };
+	juce::TextButton repeatButton;
+	juce::TextButton forwardButton;
+	juce::TextButton backwardButton;
+	juce::TextButton settingsButton;
+
+	std::vector<juce::TextButton*> buttons = {
+		&loadButton, &restartButton, &stopButton, &playButton,
+		&muteButton, &go_to_startButton, &go_to_endButton,
+		&speedButton, &repeatButton, &forwardButton, &backwardButton, &settingsButton
+	};
+
+	// ===============================================
+	// ============== Sliders ========================
+	// ===============================================
+	class CircularVolumeSlider : public juce::Slider
 	{
 	public:
 		CircularVolumeSlider()
@@ -248,7 +342,6 @@ private:
 			auto dy = y - centre.y;
 			auto distanceFromCentre = std::sqrt(dx * dx + dy * dy);
 			auto radius = juce::jmin(getWidth(), getHeight()) / 2.0f;
-
 			return distanceFromCentre > (radius * 0.4f) && distanceFromCentre < (radius * 0.9f);
 		}
 
@@ -257,7 +350,6 @@ private:
 			auto bounds = getLocalBounds().toFloat();
 			auto centre = bounds.getCentre();
 			auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
-
 			auto startAngle = juce::MathConstants<float>::pi * 1.2f;
 			auto endAngle = juce::MathConstants<float>::pi * 2.8f;
 			auto totalAngleRange = endAngle - startAngle;
@@ -265,45 +357,32 @@ private:
 			int numDots = 12;
 			float dotRadius = 6.0f;
 			float dotDistance = radius * 0.75f;
-
 			float currentValue = (float)getValue();
 
 			for (int i = 0; i < numDots; ++i)
 			{
 				float t = (float)i / (float)(numDots - 1);
 				float angle = startAngle + (totalAngleRange * t);
-
 				float x = centre.x + std::cos(angle) * dotDistance;
 				float y = centre.y + std::sin(angle) * dotDistance;
-
-				if (t <= currentValue)
-				{
-					g.setColour(juce::Colours::white);
-				}
-				else
-				{
-					g.setColour(juce::Colours::black.withAlpha(0.6f));
-				}
-
+				g.setColour(t <= currentValue ? juce::Colours::white : juce::Colours::black.withAlpha(0.6f));
 				g.fillEllipse(x - dotRadius, y - dotRadius, dotRadius * 2, dotRadius * 2);
 			}
 		}
 	};
 
-	// Sliders
 	CircularVolumeSlider volumeSlider;
 	juce::Slider speedSlider;
 	juce::Label speedLabel;
-
-	// Position Slider (للتحكم في مكان الأغنية)
 	juce::Slider positionSlider;
-
 	bool isUserDraggingPosition = false;
 	double lastVal = 0.5;
 	bool muted = false;
 	bool stoped = true;
 
-	// Labels
+	// ===============================================
+	// ============== Labels ========================
+	// ===============================================
 	juce::Label author;
 	juce::Label songTitle;
 	juce::Label durationHeader;
@@ -322,15 +401,11 @@ private:
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
 
-	void initializeControls();
-	void refreshPlaylist();
-	void playTrackFromPlaylist(int index);
-
-	// Waveform components
+	// ===============================================
+	// ============== Waveform ======================
+	// ===============================================
 	juce::AudioThumbnail thumbnail;
-	//الاشكال و المستطيلات 
 	juce::Rectangle<int> waveformArea;
 	juce::Rectangle<int> controlButtonsArea;
-	juce::Rectangle<int> playlistPanelArea;
 	juce::Rectangle<int> headerBoxArea;
 };

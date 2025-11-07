@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // JUCE headers
 #include <JuceHeader.h>
@@ -30,6 +30,7 @@ struct LastSetion {
 	juce::File thumbnailFile;
 	juce::String thumbnailUrl;
 	juce::String duration;
+	std::vector<Marker> marker;
 };
 //==============================================================================
 // Required Data Structures
@@ -49,7 +50,7 @@ public:
 
 	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
 
-	void listBoxItemClicked(int row, const juce::MouseEvent&) override;
+	void listBoxItemDoubleClicked(int row, const juce::MouseEvent&) override;
 
 private:
 	Home* ownerHome;
@@ -72,7 +73,7 @@ public:
 
 	int getNumRows() override;
 	void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
-	void listBoxItemClicked(int row, const juce::MouseEvent& e) override;
+	void listBoxItemDoubleClicked(int row, const juce::MouseEvent& e) override;
 
 private:
 	Home* ownerHome;
@@ -131,7 +132,8 @@ private:
 	static const std::map<juce::String, Languages> LanguageMap;
 
 	// Home Page Layer
-	juce::TextButton tempSuggest{ "Suggest" };
+	juce::ImageButton tempSuggest{ "Suggest" };
+	juce::Label welcomeLabel;
 
 	RecentsListModel recentsModel{ this };
 	juce::ListBox recentsListBox;
@@ -145,6 +147,7 @@ private:
 	juce::TextEditor searchBar;
 	juce::ImageButton logsButton;
 	juce::ImageButton settingsButton;
+	juce::Image logoImage;
 
 	// Labels
 	juce::Label settingsText;
