@@ -441,7 +441,7 @@ Home::Home(const std::string& themeColor, const std::string& language, PlayerGUI
 	addAndMakeVisible(welcomeLabel);
 
 	juce::Image suggest = juce::ImageCache::getFromMemory(BinaryData::husr_jpg, BinaryData::husr_jpgSize);
-	tempSuggest.setImages(true, true, true, suggest, 1.0f, {}, suggest, 0.7f, {}, suggest, 0.3f, {});
+	tempSuggest.setImages(false, true, false, suggest, 1.0f, {}, suggest, 0.7f, {}, suggest, 0.3f, {});
 	tempSuggest.addListener(this);
 
 	tempSuggest.onClick = [this]()
@@ -951,7 +951,7 @@ void Home::layoutPageArea(juce::Rectangle<int>& bounds)
 
 	auto suggestArea = bounds.removeFromTop((int)(bounds.getHeight() * 0.5));
 
-	auto labelArea = suggestArea.removeFromTop((int)(suggestArea.getHeight() * 0.25));
+	auto labelArea = suggestArea.removeFromTop((int)(suggestArea.getHeight() * 0.14));
 	welcomeLabel.setBounds(labelArea.reduced(20, 5));
 	tempSuggest.setBounds(suggestArea);
 
