@@ -5,7 +5,7 @@
 class SimpleAudioPlayer : public juce::JUCEApplication
 {
 public:
-    const juce::String getApplicationName() override { return "Simple Audio Player"; }
+    const juce::String getApplicationName() override { return "Chicken Audio Player"; }
     const juce::String getApplicationVersion() override { return "1.0"; }
 
     void initialise(const juce::String&) override
@@ -31,6 +31,7 @@ private:
         {
             setUsingNativeTitleBar(true);
             setContentOwned(new MainComponent(), true); // MainComponent = our UI + logic
+            setFullScreen(true);
             centreWithSize(400, 200);
             setVisible(true);
         }

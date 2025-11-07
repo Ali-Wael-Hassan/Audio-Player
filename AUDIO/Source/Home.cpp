@@ -450,6 +450,9 @@ Home::Home(const std::string& themeColor, const std::string& language, PlayerGUI
 		repaint();
 	};
 
+	logsButton.setVisible(false);
+	logsText.setVisible(false);
+
 	setSize(500, 250);
 }
 
@@ -897,8 +900,8 @@ void Home::layoutTopBar(juce::Rectangle<int>& bounds)
 	settingsText.setBounds(settingsArea);
 
 	auto logsArea = righArea.removeFromRight(buttonWidth1);
-	logsButton.setBounds(logsArea.removeFromTop((int)(logsArea.getHeight() * 0.7)));
-	logsText.setBounds(logsArea);
+	//logsButton.setBounds(logsArea.removeFromTop((int)(logsArea.getHeight() * 0.7)));
+	//logsText.setBounds(logsArea);
 
 	searchBar.setBounds(topRectangle.reduced(300, (int)(topRectangle.getHeight() * 0.35)));
 }
