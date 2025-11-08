@@ -33,7 +33,7 @@ The program allows users to load, play, and manage audio files and playlists. It
 
 * **View Project Design Document:** [**Click here for the Google Doc**](https://docs.google.com/document/d/1XCiHWhwyYIqgTqKv2bRetHcsCzcCk4Eg/edit?usp=sharing&ouid=107699201691207194397&rtpof=true&sd=true)
 
-* **View Generated Code Documentation (Static):** [**Click here for a snapshot on Google Drive**](https://drive.google.com/file/d/1b3W8wr5WWNAZMCeeX6HqlwbraDC8uW/view?usp=sharing)
+* **View Generated Code Documentation (Static):** [**Click here for a snapshot on Google Drive**](https://drive.google.com/file/d/1zUQhVZZ_GdwJxXYbJSeIrJwIRj8uQHXW/view?usp=sharing)
     *(This is a pre-generated version of the Doxygen documentation.)*
 
 * **Generate Local Documentation:** You can also generate the latest documentation from the source code by following the **"Documentation Generation"** steps at the bottom of this file.
